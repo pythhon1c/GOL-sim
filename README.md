@@ -13,7 +13,7 @@ A parallel Rust engine, a Python server, and a browser workspace for watching wo
 [![Correctness checks](https://github.com/pythhon1c/GOL-sim/actions/workflows/check.yml/badge.svg)](https://github.com/pythhon1c/GOL-sim/actions/workflows/check.yml)
 [![PolyForm Noncommercial](https://img.shields.io/badge/License-PolyForm%20Noncommercial-8A88C7)](LICENSE)
 
-[Quick start](#quick-start) · [How it stays fast](#how-it-stays-fast) · [Configuration](config.example.toml) · [Architecture](ARCHITECTURE.md)
+[Quick start](#quick-start) · [Watch the demo](#demo) · [How it stays fast](#how-it-stays-fast) · [Configuration](config.example.toml) · [Architecture](ARCHITECTURE.md)
 
 </div>
 
@@ -38,6 +38,21 @@ GOL sim is designed for large sparse worlds, with configurable resource budgets 
 The public library includes **59 ready-to-use patterns**: still lifes, oscillators, spaceships, glider guns, growing patterns and verified logic demonstrations. Search names in English, Russian or Ukrainian. The interface starts in **English** and remembers your language choice.
 
 Black cells are dead and white cells are alive. Zoomed-out gray represents population density. The optional thermal view highlights guarded recurrence and activity using a fixed scale; its colors never change the simulation.
+
+## Demo
+
+Watch a 256 × 160 field evolve. At generation 68, the monitor switches from white cells to a heatmap of the same population. The recording then opens the pattern library, browses factories, logic circuits and glider guns, and runs the Gosper gun long enough to see two gliders in flight.
+
+[![Animated preview of the Cells and Heatmap views, machine library, and Gosper glider gun](docs/media/simulation-preview.gif)](https://github.com/pythhon1c/GOL-sim/raw/refs/heads/keys.land/docs/media/simulation.mp4)
+
+[Download the 25-second video in 720p (MP4)](https://github.com/pythhon1c/GOL-sim/raw/refs/heads/keys.land/docs/media/simulation.mp4)
+
+| Ready-made machines | Heatmap at generation 68 |
+| --- | --- |
+| ![Pattern library showing the Blinker factory and Moving block factory](docs/images/machines.jpg) | ![Heatmap of the 256 × 160 field with cooler oscillator clusters and hot active regions](docs/images/heatmap.jpg) |
+| The Blinker factory leaves a trail of oscillators. The Moving block factory leaves stationary blocks. | Cooler colors mark confirmed cycles. Dense activity in regions without a confirmed cycle appears red. |
+
+Pattern credits and redistribution terms are listed in [Third-party notices](THIRD_PARTY.md).
 
 ## Quick start
 

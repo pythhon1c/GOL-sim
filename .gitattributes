@@ -8,6 +8,8 @@
 *.rle -text
 *.png -text
 *.jpg -text
+*.gif -text
+*.mp4 -text
 *.toml text eol=lf
 *.md text eol=lf
 *.ps1 text eol=lf

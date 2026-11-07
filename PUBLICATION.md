@@ -6,11 +6,21 @@ The developer supplied **ggggggdev@gmail.com** as a public contact. This is inte
 
 Excluded data includes `config.toml`, environment files, `.run`, checkpoints, personal run reports, unreviewed screenshots, virtual environments, toolchains, binaries, caches and Git history. Tests use sanitized deterministic fixtures under `tests/fixtures` instead of personal run reports.
 
-The sole image exception is `docs/images/monitor.jpg`: a visually reviewed
-screenshot of a synthetic local demonstration, with no personal information or
-EXIF/comment metadata. Its exact SHA-256 is pinned in the publication policy.
-Changing the image requires a new review and updated hash; arbitrary images
-remain blocked by the exporter.
+The publication policy lists five media assets. Each has a review note and a
+pinned SHA-256 digest.
+
+| Path | Format | Maximum size |
+| --- | --- | --- |
+| `docs/images/monitor.jpg` | JPEG | 8 MiB |
+| `docs/images/machines.jpg` | JPEG | 8 MiB |
+| `docs/images/heatmap.jpg` | JPEG | 8 MiB |
+| `docs/media/simulation-preview.gif` | GIF | 6 MiB |
+| `docs/media/simulation.mp4` | MP4 | 12 MiB |
+
+For a replacement, review the images or recording, any audio and the embedded
+metadata for personal information. Update the digest and review note in
+`publication-policy.json`. The exporter checks the format, size and digest at
+these exact paths and preserves their bytes in the published tree.
 
 The scanner checks common token/private-key forms, credential-bearing URLs, email addresses, user profile paths, private network addresses and local installation paths. Findings give relative paths, lines and categories without reproducing secret values. A clean scan is not proof that every possible personal datum is absent. The prepared tree inherits no Git history; later history and additions need their own review.
 

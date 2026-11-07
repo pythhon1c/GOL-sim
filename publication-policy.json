@@ -87,6 +87,26 @@
       "sha256": "ad30bc69715e98ec9485cb8724ac228b8494ee9cb0c1a2e86e52dfd2765d65c0",
       "kind": "jpeg",
       "review": "English browser capture of a seeded 120,000 by 60,000 demo field at generation 48. Reviewed for personal data and desktop overlays. JPEG metadata contains only APP0 JFIF."
+    },
+    "docs/images/machines.jpg": {
+      "sha256": "9e23bee7074b8d3c48285b665eb8ac174a7615a52a58d4d114ba2d63a8689c87",
+      "kind": "jpeg",
+      "review": "English pattern library on the small demo server showing the Blinker factory and Moving block factory. Browser capture reviewed for desktop overlays and personal data. JPEG metadata contains only APP0 JFIF."
+    },
+    "docs/images/heatmap.jpg": {
+      "sha256": "0f824e2f1a431665168cec34d659e9a822d120c8cca910c02f38c8744da92fe3",
+      "kind": "jpeg",
+      "review": "English monitor on a 256 by 160 demo board, generation 68. Browser capture reviewed for desktop overlays and personal data. JPEG metadata contains only APP0 JFIF."
+    },
+    "docs/media/simulation-preview.gif": {
+      "sha256": "24c4e47476640020e464a89a0b6c8220b05500785b4afd4ec7a27e99fcc99a65",
+      "kind": "gif",
+      "review": "Looping preview from the reviewed English monitor recording on a 256 by 160 demo board, including the machine library and heatmap switch. Decoded frames and metadata checked."
+    },
+    "docs/media/simulation.mp4": {
+      "sha256": "4865ed1ee24488c7ab998d7c30b89c56ac77a05615611512bbcbaf0b5eb57818",
+      "kind": "mp4",
+      "review": "Silent English monitor recording of a 256 by 160 demo board, the heatmap switch, factories, logic circuits, glider guns and the Gosper gun in motion. Reviewed browser captures and encoded metadata. H.264, 1280 by 720, 594 frames."
     }
   }
 }
