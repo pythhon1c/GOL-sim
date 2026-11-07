@@ -1,0 +1,5 @@
+#N block-memory inputs=10
+#C B3/S23, single shot; sample generation 144; details in extended-truth-tables.json.
+#C LIFE width=112 height=112 origin_x=0 origin_y=0 wrap=0 generation=0
+x = 112, y = 112, rule = B3/S23
+42$43bo$44bo$42b3o13$57b3o$57bo$58bo!

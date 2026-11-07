@@ -1,0 +1,3 @@
+// Generated data for the offline catalog. See THIRD_PARTY.md.
+window.LIFE_PATTERN_ASSETS = window.LIFE_PATTERN_ASSETS || Object.create(null);
+window.LIFE_PATTERN_ASSETS["blinker-puffer"] = "#C LIFE width=8201 height=8210 origin_x=4096 origin_y=4096 wrap=0 generation=0\n#C Golly Life Lexicon blinkerpuffer first diagram.\nx = 9, y = 18, rule = B3/S23\n3bo$bo3bo$o$o4bo$5o$$$$b2o$2ob3o$b4o$2b2o$$5b2o$3bo4bo$2bo$2bo5bo$2b6o!\n";

@@ -1,0 +1,186 @@
+{
+  "format": "exact-life-logic-demos",
+  "version": 1,
+  "rule": "B3/S23",
+  "coordinate_base": 0,
+  "width": 64,
+  "height": 64,
+  "wrap": false,
+  "read_generation": 64,
+  "semantics": "Single collision experiments. Inputs are glider presence at generation zero; these are not reusable continuous-stream circuits.",
+  "demos": [
+    {
+      "id": "not",
+      "clock_cells": [
+        [
+          12,
+          14
+        ],
+        [
+          13,
+          12
+        ],
+        [
+          13,
+          14
+        ],
+        [
+          14,
+          13
+        ],
+        [
+          14,
+          14
+        ]
+      ],
+      "input_cells": {
+        "input": [
+          [
+            26,
+            26
+          ],
+          [
+            26,
+            27
+          ],
+          [
+            27,
+            26
+          ],
+          [
+            27,
+            28
+          ],
+          [
+            28,
+            26
+          ]
+        ]
+      },
+      "read_roi": {
+        "x": 28,
+        "y": 28,
+        "width": 3,
+        "height": 3
+      },
+      "cases": [
+        {
+          "inputs": [
+            0
+          ],
+          "output": 1,
+          "expected_roi_population": 5,
+          "state": "not/0.json",
+          "rle": "not/0.rle"
+        },
+        {
+          "inputs": [
+            1
+          ],
+          "output": 0,
+          "expected_roi_population": 0,
+          "state": "not/1.json",
+          "rle": "not/1.rle"
+        }
+      ]
+    },
+    {
+      "id": "and",
+      "clock_cells": [],
+      "input_cells": {
+        "a": [
+          [
+            12,
+            14
+          ],
+          [
+            13,
+            12
+          ],
+          [
+            13,
+            14
+          ],
+          [
+            14,
+            13
+          ],
+          [
+            14,
+            14
+          ]
+        ],
+        "b": [
+          [
+            27,
+            27
+          ],
+          [
+            27,
+            28
+          ],
+          [
+            28,
+            27
+          ],
+          [
+            28,
+            29
+          ],
+          [
+            29,
+            27
+          ]
+        ]
+      },
+      "read_roi": {
+        "x": 20,
+        "y": 20,
+        "width": 2,
+        "height": 2
+      },
+      "cases": [
+        {
+          "inputs": [
+            0,
+            0
+          ],
+          "output": 0,
+          "expected_roi_population": 0,
+          "state": "and/00.json",
+          "rle": "and/00.rle"
+        },
+        {
+          "inputs": [
+            0,
+            1
+          ],
+          "output": 0,
+          "expected_roi_population": 0,
+          "state": "and/01.json",
+          "rle": "and/01.rle"
+        },
+        {
+          "inputs": [
+            1,
+            0
+          ],
+          "output": 0,
+          "expected_roi_population": 0,
+          "state": "and/10.json",
+          "rle": "and/10.rle"
+        },
+        {
+          "inputs": [
+            1,
+            1
+          ],
+          "output": 1,
+          "expected_roi_population": 4,
+          "state": "and/11.json",
+          "rle": "and/11.rle"
+        }
+      ]
+    }
+  ]
+}

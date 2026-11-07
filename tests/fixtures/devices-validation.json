@@ -1,0 +1,10 @@
+{
+  "rule": "B3/S23",
+  "devices": [],
+  "reference_engine": {
+    "source": "https://raw.githubusercontent.com/copy/life/924c90afb529ad5d417f11d795bc1b400fff8d18/life.js",
+    "sha256": "638cabc197b4b36601a08bb24a10f1b68431f3443d59648f742b4a829996da43",
+    "algorithm": "Independent exact HashLife; B3/S23 on the unbounded plane. Macro verification uses a fixed step of 32, with display sampled on multiples of 35,328. Ordinary generation 1 and 64 comparisons used exact single-generation steps.",
+    "replay": "node examples/devices/verify-macro.cjs PATH_TO_PINNED_life.js"
+  }
+}

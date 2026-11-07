@@ -1,0 +1,60 @@
+# User coordinates and JSON exports are one-based; the HTTP computation API is zero-based.
+[server]
+host = "127.0.0.1"
+port = 8765
+# Set LIFE_ACCESS_TOKEN before binding to a non-loopback address.
+
+[grid]
+width = 4096
+height = 4096
+wrap = false
+
+[engine]
+tile_size = "auto" # startup calibration compares 64, 128 and 256 on this CPU
+threads = "auto"
+memory_mb = "auto" # up to half available physical memory, at most 4096 MiB
+cache_mb = 128
+cycles_enabled = true # guarded replay preserves exact synchronous B3/S23
+cycles_start_generation = 128 # delay helper work until this completed generation
+cycles_max_period = 16 # longest stored exact cycle (1..64)
+cycles_memory_mb = 128 # optional helpers; reclaimed first under native memory pressure
+cycles_detection_interval = 8 # cadence of new searches; existing guards run every step
+cpu_max_percent = 90
+cpu_min_percent = 0 # advisory; no artificial workload is generated
+max_generations_per_second = 0 # 0 = unlimited; can also be changed in the monitor
+gpu = "off" # GPU execution is not available in this build; CPU results are exact
+gpu_max_percent = 100
+gpu_min_percent = 0
+
+[initial]
+path = "" # .rle, .json, or checkpoint manifest .json
+random = false
+seed = "42" # decimal text preserves all uint64 values in TOML and browser exports
+density = 0.15 # probability per cell; actual population can vary
+# rectangle omitted = whole field; corners are inclusive, one-based column.row
+# [initial.rectangle]
+# top_left = "101.101"
+# bottom_right = "600.600"
+
+[checkpoints]
+directory = "checkpoints"
+every_generations = 1000
+min_interval_seconds = 1800
+mode = "coalesce" # coalesce: both thresholds; strict: pause at threshold until interval
+segment_mb = 256
+quota_mb = 10240
+write_mb_per_second = 32
+disk_min_percent = 0 # advisory; portable disk utilization guarantees are unavailable
+disk_max_percent = 100 # advisory; write_mb_per_second controls actual writer pacing
+
+[display]
+gradient_levels = 32
+first_level_saturation = 4.0
+upper_level_saturation = 1.5
+tile_cache_mb = 64
+heat_stable = 0.08 # base temperature of confirmed period 1
+heat_cycle_max = 0.45 # base temperature at period 64, logarithmic between periods
+heat_active = 0.65 # no currently confirmed cycle (including not yet inspected)
+heat_density_gain = 0.30 # added to both cyclic and active cells
+heat_density_reference = 0.15 # density at which the full density gain is reached
+heat_hotspot_mix = 0.25 # weight of the hottest occupied child versus live-weighted mean

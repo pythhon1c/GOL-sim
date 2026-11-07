@@ -1,0 +1,16 @@
+{
+  "repository": "pythhon1c/GOL-sim",
+  "description": "A fast Conway's Game of Life simulator designed for large-scale simulations, with parallel computation, exact cycle caching, an offline pattern editor, and a multilingual browser monitor.",
+  "topics": [
+    "conways-game-of-life",
+    "game-of-life",
+    "cellular-automata",
+    "simulation",
+    "high-performance",
+    "parallel-computing",
+    "rust",
+    "python",
+    "fastapi",
+    "pattern-editor"
+  ]
+}

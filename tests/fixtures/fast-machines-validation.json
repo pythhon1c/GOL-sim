@@ -1,0 +1,224 @@
+{
+  "rule": "B3/S23",
+  "devices": [
+    {
+      "id": "blinker-puffer",
+      "author": "Robert Wainwright, 1984",
+      "source": "https://github.com/AlephAlpha/golly/blob/2cf06330cab58dccec085724067e17ddd7a56905/Help/Lexicon/lex_b.htm#blinkerpuffer",
+      "input_rle_sha256": "8d373c5ad7e18c89b7ec2df6b767457c2c0c068401be1df543f4e22e9b926197",
+      "asset_path": "web/patterns/blinker-puffer.rle",
+      "asset_sha256": "03875faf1bd9f927c2ec5edef9090280683e167a928155c774dfbe74dad0a695",
+      "field_margin": 4096,
+      "field": [
+        8201,
+        8210
+      ],
+      "initial_population": 37,
+      "generation": 128,
+      "population": 85,
+      "coordinate_sha256": "a43d01fa034287c86da0975609778bc951507640b97db2372ac3fd6cc0f49669",
+      "reference": "Independent scalar synchronous B3/S23, unbounded dead exterior; xy coordinates relative to RLE origin. Shift +256,+256 for finite-field import.",
+      "transform": {
+        "description": "Source collision region or Lexicon ASCII fixture extracted, normalized to local origin, encoded as B3/S23 RLE, and padded.",
+        "source_crop": null,
+        "period_check": {
+          "translated_initial_subset": true,
+          "extra_population": 3,
+          "extra_components": [
+            [
+              [
+                4,
+                10
+              ],
+              [
+                5,
+                10
+              ],
+              [
+                6,
+                10
+              ]
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "id": "block-laying-switch-engine",
+      "author": "Charles Corderman; mature engine phase from Golly Life Lexicon",
+      "source": "https://github.com/AlephAlpha/golly/blob/2cf06330cab58dccec085724067e17ddd7a56905/Help/Lexicon/lex_s.htm#stabilizedswitchengine",
+      "input_rle_sha256": "c8ca83ee0590d2c748e4a935187c8b46105b3f1a688b4f995c790a1359a7348c",
+      "asset_path": "web/patterns/block-laying-switch-engine.rle",
+      "asset_sha256": "af1053e7d0ee86731f0f07789af685e891c58f9d79664d47db0ebb82f3646460",
+      "field_margin": 4096,
+      "field": [
+        8252,
+        8252
+      ],
+      "initial_population": 104,
+      "generation": 288,
+      "population": 136,
+      "coordinate_sha256": "0648347317bdce9c84f77e4a7e69fba71053945b8bafdfaf871cb16a62009466",
+      "reference": "Independent scalar synchronous B3/S23, unbounded dead exterior; xy coordinates relative to RLE origin. Shift +256,+256 for finite-field import.",
+      "transform": {
+        "description": "Source collision region or Lexicon ASCII fixture extracted, normalized to local origin, encoded as B3/S23 RLE, and padded.",
+        "source_crop": null,
+        "period_check": {
+          "translated_initial_subset": true,
+          "extra_population": 32,
+          "extra_components": [
+            [
+              [
+                42,
+                30
+              ],
+              [
+                42,
+                31
+              ],
+              [
+                43,
+                30
+              ],
+              [
+                43,
+                31
+              ]
+            ],
+            [
+              [
+                39,
+                36
+              ],
+              [
+                39,
+                37
+              ],
+              [
+                40,
+                36
+              ],
+              [
+                40,
+                37
+              ]
+            ],
+            [
+              [
+                48,
+                51
+              ],
+              [
+                48,
+                52
+              ],
+              [
+                49,
+                51
+              ],
+              [
+                49,
+                52
+              ]
+            ],
+            [
+              [
+                38,
+                58
+              ],
+              [
+                38,
+                59
+              ],
+              [
+                39,
+                58
+              ],
+              [
+                39,
+                59
+              ]
+            ],
+            [
+              [
+                30,
+                50
+              ],
+              [
+                30,
+                51
+              ],
+              [
+                31,
+                50
+              ],
+              [
+                31,
+                51
+              ]
+            ],
+            [
+              [
+                35,
+                40
+              ],
+              [
+                35,
+                41
+              ],
+              [
+                36,
+                40
+              ],
+              [
+                36,
+                41
+              ]
+            ],
+            [
+              [
+                58,
+                46
+              ],
+              [
+                58,
+                47
+              ],
+              [
+                59,
+                46
+              ],
+              [
+                59,
+                47
+              ]
+            ],
+            [
+              [
+                44,
+                55
+              ],
+              [
+                44,
+                56
+              ],
+              [
+                45,
+                55
+              ],
+              [
+                45,
+                56
+              ]
+            ]
+          ]
+        }
+      }
+    }
+  ],
+  "coordinate_hash_format": "Sort by y then x; signed int32 LE x followed by y; RLE-local coordinates before field margin.",
+  "reference_engine": {
+    "source": "https://raw.githubusercontent.com/copy/life/924c90afb529ad5d417f11d795bc1b400fff8d18/life.js",
+    "sha256": "638cabc197b4b36601a08bb24a10f1b68431f3443d59648f742b4a829996da43"
+  }
+}

@@ -1,0 +1,17 @@
+[package]
+name = "life_native"
+version = "0.1.0"
+authors = ["pythhon1c <ggggggdev@gmail.com>"]
+edition = "2021"
+license = "PolyForm-Noncommercial-1.0.0"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+rayon = "1.10"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+

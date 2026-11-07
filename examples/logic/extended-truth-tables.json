@@ -1,0 +1,1350 @@
+{
+  "format": "exact-life-logic-extensions",
+  "version": 1,
+  "rule": "B3/S23",
+  "width": 112,
+  "height": 112,
+  "wrap": false,
+  "coordinate_base": 0,
+  "demos": [
+    {
+      "id": "nor",
+      "label": "NOR",
+      "description": "Два вхідні глайдери можуть по черзі загасити один тактовий імпульс.",
+      "pins": [
+        "A",
+        "B"
+      ],
+      "fixed_cells": [
+        [
+          18,
+          20
+        ],
+        [
+          19,
+          18
+        ],
+        [
+          19,
+          20
+        ],
+        [
+          20,
+          19
+        ],
+        [
+          20,
+          20
+        ]
+      ],
+      "input_cells": [
+        [
+          [
+            32,
+            32
+          ],
+          [
+            32,
+            33
+          ],
+          [
+            33,
+            32
+          ],
+          [
+            33,
+            34
+          ],
+          [
+            34,
+            32
+          ]
+        ],
+        [
+          [
+            48,
+            48
+          ],
+          [
+            48,
+            49
+          ],
+          [
+            49,
+            48
+          ],
+          [
+            49,
+            50
+          ],
+          [
+            50,
+            48
+          ]
+        ]
+      ],
+      "checkpoints": [
+        {
+          "generation": 96,
+          "output_roi": {
+            "x": 42,
+            "y": 42,
+            "width": 3,
+            "height": 3
+          },
+          "signal": "glider",
+          "one_cells": [
+            [
+              42,
+              44
+            ],
+            [
+              43,
+              42
+            ],
+            [
+              43,
+              44
+            ],
+            [
+              44,
+              43
+            ],
+            [
+              44,
+              44
+            ]
+          ],
+          "velocity_per_four": [
+            1,
+            1
+          ]
+        }
+      ],
+      "cases": [
+        {
+          "inputs": [
+            0,
+            0
+          ],
+          "outputs": [
+            1
+          ],
+          "state": "nor/00.json",
+          "rle": "nor/00.rle"
+        },
+        {
+          "inputs": [
+            0,
+            1
+          ],
+          "outputs": [
+            0
+          ],
+          "state": "nor/01.json",
+          "rle": "nor/01.rle"
+        },
+        {
+          "inputs": [
+            1,
+            0
+          ],
+          "outputs": [
+            0
+          ],
+          "state": "nor/10.json",
+          "rle": "nor/10.rle"
+        },
+        {
+          "inputs": [
+            1,
+            1
+          ],
+          "outputs": [
+            0
+          ],
+          "state": "nor/11.json",
+          "rle": "nor/11.rle"
+        }
+      ]
+    },
+    {
+      "id": "or",
+      "label": "OR",
+      "description": "Другий тактовий імпульс інвертує спільний вихід NOR.",
+      "pins": [
+        "A",
+        "B"
+      ],
+      "fixed_cells": [
+        [
+          18,
+          20
+        ],
+        [
+          19,
+          18
+        ],
+        [
+          19,
+          20
+        ],
+        [
+          20,
+          19
+        ],
+        [
+          20,
+          20
+        ],
+        [
+          64,
+          64
+        ],
+        [
+          64,
+          65
+        ],
+        [
+          65,
+          64
+        ],
+        [
+          65,
+          66
+        ],
+        [
+          66,
+          64
+        ]
+      ],
+      "input_cells": [
+        [
+          [
+            32,
+            32
+          ],
+          [
+            32,
+            33
+          ],
+          [
+            33,
+            32
+          ],
+          [
+            33,
+            34
+          ],
+          [
+            34,
+            32
+          ]
+        ],
+        [
+          [
+            48,
+            48
+          ],
+          [
+            48,
+            49
+          ],
+          [
+            49,
+            48
+          ],
+          [
+            49,
+            50
+          ],
+          [
+            50,
+            48
+          ]
+        ]
+      ],
+      "checkpoints": [
+        {
+          "generation": 128,
+          "output_roi": {
+            "x": 32,
+            "y": 32,
+            "width": 3,
+            "height": 3
+          },
+          "signal": "glider",
+          "one_cells": [
+            [
+              32,
+              32
+            ],
+            [
+              32,
+              33
+            ],
+            [
+              33,
+              32
+            ],
+            [
+              33,
+              34
+            ],
+            [
+              34,
+              32
+            ]
+          ],
+          "velocity_per_four": [
+            -1,
+            -1
+          ]
+        }
+      ],
+      "cases": [
+        {
+          "inputs": [
+            0,
+            0
+          ],
+          "outputs": [
+            0
+          ],
+          "state": "or/00.json",
+          "rle": "or/00.rle"
+        },
+        {
+          "inputs": [
+            0,
+            1
+          ],
+          "outputs": [
+            1
+          ],
+          "state": "or/01.json",
+          "rle": "or/01.rle"
+        },
+        {
+          "inputs": [
+            1,
+            0
+          ],
+          "outputs": [
+            1
+          ],
+          "state": "or/10.json",
+          "rle": "or/10.rle"
+        },
+        {
+          "inputs": [
+            1,
+            1
+          ],
+          "outputs": [
+            1
+          ],
+          "state": "or/11.json",
+          "rle": "or/11.rle"
+        }
+      ]
+    },
+    {
+      "id": "nand",
+      "label": "NAND",
+      "description": "Тільки два одночасні входи записують блок AND, який перехоплює відкладений глайдер читання.",
+      "pins": [
+        "A",
+        "B"
+      ],
+      "fixed_cells": [
+        [
+          24,
+          70
+        ],
+        [
+          25,
+          70
+        ],
+        [
+          25,
+          72
+        ],
+        [
+          26,
+          70
+        ],
+        [
+          26,
+          71
+        ]
+      ],
+      "input_cells": [
+        [
+          [
+            42,
+            44
+          ],
+          [
+            43,
+            42
+          ],
+          [
+            43,
+            44
+          ],
+          [
+            44,
+            43
+          ],
+          [
+            44,
+            44
+          ]
+        ],
+        [
+          [
+            57,
+            57
+          ],
+          [
+            57,
+            58
+          ],
+          [
+            58,
+            57
+          ],
+          [
+            58,
+            59
+          ],
+          [
+            59,
+            57
+          ]
+        ]
+      ],
+      "checkpoints": [
+        {
+          "generation": 120,
+          "output_roi": {
+            "x": 54,
+            "y": 40,
+            "width": 3,
+            "height": 3
+          },
+          "signal": "glider",
+          "one_cells": [
+            [
+              54,
+              40
+            ],
+            [
+              55,
+              40
+            ],
+            [
+              55,
+              42
+            ],
+            [
+              56,
+              40
+            ],
+            [
+              56,
+              41
+            ]
+          ],
+          "velocity_per_four": [
+            1,
+            -1
+          ]
+        }
+      ],
+      "cases": [
+        {
+          "inputs": [
+            0,
+            0
+          ],
+          "outputs": [
+            1
+          ],
+          "state": "nand/00.json",
+          "rle": "nand/00.rle"
+        },
+        {
+          "inputs": [
+            0,
+            1
+          ],
+          "outputs": [
+            1
+          ],
+          "state": "nand/01.json",
+          "rle": "nand/01.rle"
+        },
+        {
+          "inputs": [
+            1,
+            0
+          ],
+          "outputs": [
+            1
+          ],
+          "state": "nand/10.json",
+          "rle": "nand/10.rle"
+        },
+        {
+          "inputs": [
+            1,
+            1
+          ],
+          "outputs": [
+            0
+          ],
+          "state": "nand/11.json",
+          "rle": "nand/11.rle"
+        }
+      ]
+    },
+    {
+      "id": "xnor",
+      "label": "XNOR",
+      "description": "Один вхід гасить тактовий глайдер. Два входи взаємно гасяться і пропускають його.",
+      "pins": [
+        "A",
+        "B"
+      ],
+      "fixed_cells": [
+        [
+          29,
+          45
+        ],
+        [
+          30,
+          43
+        ],
+        [
+          30,
+          44
+        ],
+        [
+          31,
+          44
+        ],
+        [
+          31,
+          45
+        ]
+      ],
+      "input_cells": [
+        [
+          [
+            32,
+            34
+          ],
+          [
+            33,
+            32
+          ],
+          [
+            33,
+            34
+          ],
+          [
+            34,
+            33
+          ],
+          [
+            34,
+            34
+          ]
+        ],
+        [
+          [
+            41,
+            42
+          ],
+          [
+            41,
+            43
+          ],
+          [
+            42,
+            42
+          ],
+          [
+            42,
+            44
+          ],
+          [
+            43,
+            42
+          ]
+        ]
+      ],
+      "checkpoints": [
+        {
+          "generation": 80,
+          "output_roi": {
+            "x": 49,
+            "y": 23,
+            "width": 3,
+            "height": 3
+          },
+          "signal": "glider",
+          "one_cells": [
+            [
+              49,
+              25
+            ],
+            [
+              50,
+              23
+            ],
+            [
+              50,
+              24
+            ],
+            [
+              51,
+              24
+            ],
+            [
+              51,
+              25
+            ]
+          ],
+          "velocity_per_four": [
+            1,
+            -1
+          ]
+        }
+      ],
+      "cases": [
+        {
+          "inputs": [
+            0,
+            0
+          ],
+          "outputs": [
+            1
+          ],
+          "state": "xnor/00.json",
+          "rle": "xnor/00.rle"
+        },
+        {
+          "inputs": [
+            0,
+            1
+          ],
+          "outputs": [
+            0
+          ],
+          "state": "xnor/01.json",
+          "rle": "xnor/01.rle"
+        },
+        {
+          "inputs": [
+            1,
+            0
+          ],
+          "outputs": [
+            0
+          ],
+          "state": "xnor/10.json",
+          "rle": "xnor/10.rle"
+        },
+        {
+          "inputs": [
+            1,
+            1
+          ],
+          "outputs": [
+            1
+          ],
+          "state": "xnor/11.json",
+          "rle": "xnor/11.rle"
+        }
+      ]
+    },
+    {
+      "id": "xor",
+      "label": "XOR",
+      "description": "Другий тактовий глайдер інвертує XNOR та дає спільний вихід для 01 і 10.",
+      "pins": [
+        "A",
+        "B"
+      ],
+      "fixed_cells": [
+        [
+          29,
+          45
+        ],
+        [
+          30,
+          43
+        ],
+        [
+          30,
+          44
+        ],
+        [
+          31,
+          44
+        ],
+        [
+          31,
+          45
+        ],
+        [
+          59,
+          12
+        ],
+        [
+          59,
+          13
+        ],
+        [
+          60,
+          11
+        ],
+        [
+          60,
+          13
+        ],
+        [
+          61,
+          13
+        ]
+      ],
+      "input_cells": [
+        [
+          [
+            32,
+            34
+          ],
+          [
+            33,
+            32
+          ],
+          [
+            33,
+            34
+          ],
+          [
+            34,
+            33
+          ],
+          [
+            34,
+            34
+          ]
+        ],
+        [
+          [
+            41,
+            42
+          ],
+          [
+            41,
+            43
+          ],
+          [
+            42,
+            42
+          ],
+          [
+            42,
+            44
+          ],
+          [
+            43,
+            42
+          ]
+        ]
+      ],
+      "checkpoints": [
+        {
+          "generation": 112,
+          "output_roi": {
+            "x": 31,
+            "y": 39,
+            "width": 3,
+            "height": 3
+          },
+          "signal": "glider",
+          "one_cells": [
+            [
+              31,
+              40
+            ],
+            [
+              31,
+              41
+            ],
+            [
+              32,
+              39
+            ],
+            [
+              32,
+              41
+            ],
+            [
+              33,
+              41
+            ]
+          ],
+          "velocity_per_four": [
+            -1,
+            1
+          ]
+        }
+      ],
+      "cases": [
+        {
+          "inputs": [
+            0,
+            0
+          ],
+          "outputs": [
+            0
+          ],
+          "state": "xor/00.json",
+          "rle": "xor/00.rle"
+        },
+        {
+          "inputs": [
+            0,
+            1
+          ],
+          "outputs": [
+            1
+          ],
+          "state": "xor/01.json",
+          "rle": "xor/01.rle"
+        },
+        {
+          "inputs": [
+            1,
+            0
+          ],
+          "outputs": [
+            1
+          ],
+          "state": "xor/10.json",
+          "rle": "xor/10.rle"
+        },
+        {
+          "inputs": [
+            1,
+            1
+          ],
+          "outputs": [
+            0
+          ],
+          "state": "xor/11.json",
+          "rle": "xor/11.rle"
+        }
+      ]
+    },
+    {
+      "id": "inhibit",
+      "label": "Інгібітор · A І НЕ B",
+      "description": "Глайдер A проходить до виходу, тільки коли глайдер B його не загасив.",
+      "pins": [
+        "A",
+        "B"
+      ],
+      "fixed_cells": [],
+      "input_cells": [
+        [
+          [
+            18,
+            20
+          ],
+          [
+            19,
+            18
+          ],
+          [
+            19,
+            20
+          ],
+          [
+            20,
+            19
+          ],
+          [
+            20,
+            20
+          ]
+        ],
+        [
+          [
+            32,
+            32
+          ],
+          [
+            32,
+            33
+          ],
+          [
+            33,
+            32
+          ],
+          [
+            33,
+            34
+          ],
+          [
+            34,
+            32
+          ]
+        ]
+      ],
+      "checkpoints": [
+        {
+          "generation": 96,
+          "output_roi": {
+            "x": 42,
+            "y": 42,
+            "width": 3,
+            "height": 3
+          },
+          "signal": "glider",
+          "one_cells": [
+            [
+              42,
+              44
+            ],
+            [
+              43,
+              42
+            ],
+            [
+              43,
+              44
+            ],
+            [
+              44,
+              43
+            ],
+            [
+              44,
+              44
+            ]
+          ],
+          "velocity_per_four": [
+            1,
+            1
+          ]
+        }
+      ],
+      "cases": [
+        {
+          "inputs": [
+            0,
+            0
+          ],
+          "outputs": [
+            0
+          ],
+          "state": "inhibit/00.json",
+          "rle": "inhibit/00.rle"
+        },
+        {
+          "inputs": [
+            0,
+            1
+          ],
+          "outputs": [
+            0
+          ],
+          "state": "inhibit/01.json",
+          "rle": "inhibit/01.rle"
+        },
+        {
+          "inputs": [
+            1,
+            0
+          ],
+          "outputs": [
+            1
+          ],
+          "state": "inhibit/10.json",
+          "rle": "inhibit/10.rle"
+        },
+        {
+          "inputs": [
+            1,
+            1
+          ],
+          "outputs": [
+            0
+          ],
+          "state": "inhibit/11.json",
+          "rle": "inhibit/11.rle"
+        }
+      ]
+    },
+    {
+      "id": "implies",
+      "label": "Імплікація · A ⇒ B",
+      "description": "Тактовий глайдер інвертує вихід інгібітора A І НЕ B.",
+      "pins": [
+        "A",
+        "B"
+      ],
+      "fixed_cells": [
+        [
+          48,
+          48
+        ],
+        [
+          48,
+          49
+        ],
+        [
+          49,
+          48
+        ],
+        [
+          49,
+          50
+        ],
+        [
+          50,
+          48
+        ]
+      ],
+      "input_cells": [
+        [
+          [
+            18,
+            20
+          ],
+          [
+            19,
+            18
+          ],
+          [
+            19,
+            20
+          ],
+          [
+            20,
+            19
+          ],
+          [
+            20,
+            20
+          ]
+        ],
+        [
+          [
+            32,
+            32
+          ],
+          [
+            32,
+            33
+          ],
+          [
+            33,
+            32
+          ],
+          [
+            33,
+            34
+          ],
+          [
+            34,
+            32
+          ]
+        ]
+      ],
+      "checkpoints": [
+        {
+          "generation": 120,
+          "output_roi": {
+            "x": 18,
+            "y": 18,
+            "width": 3,
+            "height": 3
+          },
+          "signal": "glider",
+          "one_cells": [
+            [
+              18,
+              18
+            ],
+            [
+              18,
+              19
+            ],
+            [
+              19,
+              18
+            ],
+            [
+              19,
+              20
+            ],
+            [
+              20,
+              18
+            ]
+          ],
+          "velocity_per_four": [
+            -1,
+            -1
+          ]
+        }
+      ],
+      "cases": [
+        {
+          "inputs": [
+            0,
+            0
+          ],
+          "outputs": [
+            1
+          ],
+          "state": "implies/00.json",
+          "rle": "implies/00.rle"
+        },
+        {
+          "inputs": [
+            0,
+            1
+          ],
+          "outputs": [
+            1
+          ],
+          "state": "implies/01.json",
+          "rle": "implies/01.rle"
+        },
+        {
+          "inputs": [
+            1,
+            0
+          ],
+          "outputs": [
+            0
+          ],
+          "state": "implies/10.json",
+          "rle": "implies/10.rle"
+        },
+        {
+          "inputs": [
+            1,
+            1
+          ],
+          "outputs": [
+            1
+          ],
+          "state": "implies/11.json",
+          "rle": "implies/11.rle"
+        }
+      ]
+    },
+    {
+      "id": "block-memory",
+      "label": "Пам’ять на 1 біт · запис і скидання",
+      "description": "На ході 60 у комірці зберігається D. Відкладений глайдер R=1 очищає її; R=0 зберігає запис.",
+      "pins": [
+        "D",
+        "R"
+      ],
+      "fixed_cells": [
+        [
+          42,
+          44
+        ],
+        [
+          43,
+          42
+        ],
+        [
+          43,
+          44
+        ],
+        [
+          44,
+          43
+        ],
+        [
+          44,
+          44
+        ]
+      ],
+      "input_cells": [
+        [
+          [
+            57,
+            57
+          ],
+          [
+            57,
+            58
+          ],
+          [
+            58,
+            57
+          ],
+          [
+            58,
+            59
+          ],
+          [
+            59,
+            57
+          ]
+        ],
+        [
+          [
+            24,
+            73
+          ],
+          [
+            25,
+            73
+          ],
+          [
+            25,
+            75
+          ],
+          [
+            26,
+            73
+          ],
+          [
+            26,
+            74
+          ]
+        ]
+      ],
+      "checkpoints": [
+        {
+          "generation": 60,
+          "output_roi": {
+            "x": 50,
+            "y": 50,
+            "width": 2,
+            "height": 2
+          },
+          "signal": "block",
+          "one_cells": [
+            [
+              50,
+              50
+            ],
+            [
+              50,
+              51
+            ],
+            [
+              51,
+              50
+            ],
+            [
+              51,
+              51
+            ]
+          ],
+          "velocity_per_four": [
+            0,
+            0
+          ]
+        },
+        {
+          "generation": 144,
+          "output_roi": {
+            "x": 50,
+            "y": 50,
+            "width": 2,
+            "height": 2
+          },
+          "signal": "block",
+          "one_cells": [
+            [
+              50,
+              50
+            ],
+            [
+              50,
+              51
+            ],
+            [
+              51,
+              50
+            ],
+            [
+              51,
+              51
+            ]
+          ],
+          "velocity_per_four": [
+            0,
+            0
+          ]
+        }
+      ],
+      "cases": [
+        {
+          "inputs": [
+            0,
+            0
+          ],
+          "outputs": [
+            0,
+            0
+          ],
+          "state": "block-memory/00.json",
+          "rle": "block-memory/00.rle"
+        },
+        {
+          "inputs": [
+            0,
+            1
+          ],
+          "outputs": [
+            0,
+            0
+          ],
+          "state": "block-memory/01.json",
+          "rle": "block-memory/01.rle"
+        },
+        {
+          "inputs": [
+            1,
+            0
+          ],
+          "outputs": [
+            1,
+            1
+          ],
+          "state": "block-memory/10.json",
+          "rle": "block-memory/10.rle"
+        },
+        {
+          "inputs": [
+            1,
+            1
+          ],
+          "outputs": [
+            1,
+            0
+          ],
+          "state": "block-memory/11.json",
+          "rle": "block-memory/11.rle"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+#N One-shot AND inputs=10
+#C Read generation 64; see examples/logic/truth-tables.json for output ROI.
+#C LIFE width=64 height=64 origin_x=0 origin_y=0 wrap=0 generation=0
+x = 64, y = 64, rule = B3/S23
+12$13bo$14bo$12b3o!

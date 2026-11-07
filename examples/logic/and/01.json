@@ -1,0 +1,32 @@
+{
+  "format": "exact-life-state",
+  "version": 1,
+  "rule": "B3/S23",
+  "coordinate_base": 1,
+  "width": 64,
+  "height": 64,
+  "wrap": false,
+  "generation": 0,
+  "cells": [
+    [
+      28,
+      28
+    ],
+    [
+      29,
+      28
+    ],
+    [
+      30,
+      28
+    ],
+    [
+      28,
+      29
+    ],
+    [
+      29,
+      30
+    ]
+  ]
+}

@@ -1,0 +1,13 @@
+* text=auto eol=lf
+*.py text eol=lf
+*.rs text eol=lf
+*.js text eol=lf
+*.cjs text eol=lf
+*.json text eol=lf
+# Pattern byte hashes refer to the exact upstream-derived RLE bytes.
+*.rle -text
+*.png -text
+*.jpg -text
+*.toml text eol=lf
+*.md text eol=lf
+*.ps1 text eol=lf

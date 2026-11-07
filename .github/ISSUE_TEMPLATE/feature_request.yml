@@ -1,0 +1,21 @@
+name: Feature request
+description: Suggest an improvement to GOL sim.
+title: "[Feature] "
+body:
+  - type: textarea
+    id: use_case
+    attributes:
+      label: What would this help you do?
+      description: Describe your simulation or editing workflow.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Describe the improvement and any alternatives you considered.
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: "All simulation features must preserve exact synchronous Conway B3/S23. Performance optimizations may change how results are calculated, never the resulting cells."

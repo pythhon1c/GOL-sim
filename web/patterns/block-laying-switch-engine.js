@@ -1,0 +1,3 @@
+// Generated data for the offline catalog. See THIRD_PARTY.md.
+window.LIFE_PATTERN_ASSETS = window.LIFE_PATTERN_ASSETS || Object.create(null);
+window.LIFE_PATTERN_ASSETS["block-laying-switch-engine"] = "#C LIFE width=8252 height=8252 origin_x=4096 origin_y=4096 wrap=0 generation=0\n#C Golly Life Lexicon stabilizedswitchengine first diagram.\nx = 60, y = 60, rule = B3/S23\n2bo$bobo$$bo2bo$3b2o$4bo$18b2o$18b2o$$$b2o$3bo$2b2o$b3o15bo$b2o16b2o5b2o$3obo14b2o5b2o$bo3bo10b2o$3bo2bo10bo$3b3o12bo$4b2o8b2o$14b2o$$34b2o$34b2o$$$6b2o$6b2o16b2o$24b2o$$42b2o$20b2o20b2o$20b2o$$14b2o$14b2o$39b2o$39b2o$$$35b2o$35b2o$$$$$58b2o$58b2o$$$30b2o$30b2o16b2o$48b2o$$$44b2o$44b2o$$38b2o$38b2o!\n";

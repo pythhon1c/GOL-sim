@@ -1,0 +1,36 @@
+name: Bug report
+description: Report a reproducible problem in the simulator or editor.
+title: "[Bug] "
+body:
+  - type: markdown
+    attributes:
+      value: "For security vulnerabilities, contact ggggggdev@gmail.com privately. Remove tokens and personal file paths from public reports."
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      description: Describe the result and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Include a small public RLE or seed and rectangle when relevant.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      placeholder: "Commit SHA or release tag"
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, browser, Python version, field size, density and relevant engine settings.
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Logs or screenshots
+      description: Optional evidence with personal data removed.
