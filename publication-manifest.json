@@ -73,8 +73,8 @@
     },
     {
       "path": "README.md",
-      "bytes": 10460,
-      "sha256": "d5139db711e4202b9efc75fc8a803b5fc588227ffc119732748dc1eedaa0a6fa"
+      "bytes": 10558,
+      "sha256": "949eb7ce1d77366a895c2095501e8b5e62bbb3189fd3a3d2d4df8962e4176488"
     },
     {
       "path": "SECURITY.md",
@@ -103,8 +103,8 @@
     },
     {
       "path": "docs/images/monitor.jpg",
-      "bytes": 113086,
-      "sha256": "c63652f7c2847d641fc53cfca25dd11cd165fafd8dbc5975df1e839d5b585c94"
+      "bytes": 294174,
+      "sha256": "ad30bc69715e98ec9485cb8724ac228b8494ee9cb0c1a2e86e52dfd2765d65c0"
     },
     {
       "path": "examples/devices/build_catalog.py",
@@ -618,8 +618,8 @@
     },
     {
       "path": "publication-policy.json",
-      "bytes": 1934,
-      "sha256": "109032763bd95a94132766dbc66fc9f8b9c4a55cea98d5d8bdae01f50aeebde9"
+      "bytes": 1975,
+      "sha256": "eaf9245d9789b8217e32fdab2fa322a62f5223205bef42f0d463e162ec9845c4"
     },
     {
       "path": "publication-profile.json",

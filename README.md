@@ -17,9 +17,9 @@ A parallel Rust engine, a Python server, and a browser workspace for watching wo
 
 </div>
 
-![GOL sim browser monitor showing a large Conway’s Game of Life world](docs/images/monitor.jpg)
+![GOL sim monitor showing spiral colonies across a 120,000 × 60,000 Conway’s Game of Life field](docs/images/monitor.jpg)
 
-*Exact cells up close. Population density and activity at a distance. One consistent world at every zoom level.*
+*Generation 48 on a 120,000 × 60,000 field with 2,050,414 live cells. The seeds were placed in spiral arms. At this zoom each gray sample shows the population of a 128 × 128 block.*
 
 GOL sim is designed for large sparse worlds, with configurable resource budgets for dense workloads. Empty space costs little; active regions are computed in parallel; repeated local evolution can reuse verified results. **Every generation follows classic B3/S23, with all cells updated simultaneously from the previous state.**
 

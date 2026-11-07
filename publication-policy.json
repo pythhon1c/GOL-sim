@@ -84,9 +84,9 @@
   "reason": "The public tree includes original project circuits and Life Lexicon entries under CC BY-SA 3.0. Other bundled devices require clarified redistribution permission.",
   "reviewed_binary_assets": {
     "docs/images/monitor.jpg": {
-      "sha256": "c63652f7c2847d641fc53cfca25dd11cd165fafd8dbc5975df1e839d5b585c94",
+      "sha256": "ad30bc69715e98ec9485cb8724ac228b8494ee9cb0c1a2e86e52dfd2765d65c0",
       "kind": "jpeg",
-      "review": "Synthetic local QA world, no personal data; reviewed screenshot. JPEG contains only APP0 JFIF metadata, with no EXIF or comments."
+      "review": "English browser capture of a seeded 120,000 by 60,000 demo field at generation 48. Reviewed for personal data and desktop overlays. JPEG metadata contains only APP0 JFIF."
     }
   }
 }
