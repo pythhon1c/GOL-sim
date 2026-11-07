@@ -8,9 +8,10 @@ the native engine against the independent scalar reference tests. Cached or
 guarded transitions must invalidate on every relevant boundary change. Rendering
 and translations must never modify cells, generation counts or simulation rules.
 
-Write code comments and developer documentation in English. Keep English,
-Russian and Ukrainian UI dictionaries complete. Keep technical identifiers and
-serialization formats language-independent; English is the default UI language.
+Use English for code comments, documentation and the pattern metadata served by
+the API and bundled with the offline editor. Add Russian and Ukrainian display
+text and search aliases to the locale dictionaries. Use stable pattern IDs in
+all three languages. English is the default UI language.
 
 Do not commit local configuration, checkpoints, logs, credentials, screenshots
 of personal environments, virtual environments or compiled binaries. Add new

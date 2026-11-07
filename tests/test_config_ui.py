@@ -57,12 +57,12 @@ def test_visual_toml_round_trip_preserves_every_setting_and_uint64():
     config = copy.deepcopy(DEFAULTS)
     config["grid"].update(width=6400, height=4700, wrap=True)
     config["initial"].update(
-        path='C:\\Life "figures"\\Початок.rle', random=True,
+        path='C:\\Life "figures"\\Café.rle', random=True,
         seed="18446744073709551615", density=0.27,
         rectangle={"top_left": "100.200", "bottom_right": "4000.3000"},
     )
     config["engine"].update(threads=4, tile_size=256, memory_mb=1024)
-    config["checkpoints"].update(directory="saved/Стан", mode="strict")
+    config["checkpoints"].update(directory="saved/Résumé", mode="strict")
     exported = tomllib.loads(editor("toml", config))
     assert merge_config(exported) == merge_config(config)
 

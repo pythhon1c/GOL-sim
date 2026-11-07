@@ -26,11 +26,11 @@
     const id = pattern.asset;
     if (id === "clock") {
       if (typeof window.LIFE_CLOCK_RLE !== "string")
-        throw Error(T("Не знайдено даних цифрового годинника."));
+        throw Error(T("Digital clock data was not found."));
       return window.LIFE_CLOCK_RLE;
     }
     if (!/^[a-z0-9][a-z0-9-]*$/.test(id || ""))
-      throw Error(T("Некоректний запис у бібліотеці фігур."));
+      throw Error(T("Invalid pattern library entry."));
     const read = () => window.LIFE_PATTERN_ASSETS?.[id];
     if (typeof read() === "string") return read();
     if (!loads.has(id)) {
@@ -44,12 +44,12 @@
           if (typeof read() === "string") resolve(read());
           else
             reject(
-              Error(T("Файл пристрою не містить очікуваної фігури: ") + id),
+              Error(T("The device file does not contain the expected pattern: ") + id),
             );
         };
         script.onerror = () => {
           script.remove();
-          reject(Error(T("Не вдалося завантажити фігуру: ") + id));
+          reject(Error(T("Could not load pattern: ") + id));
         };
         document.head.append(script);
       });
@@ -64,7 +64,7 @@
       /^\s*x\s*=\s*(\d+)\s*,\s*y\s*=\s*(\d+)(?:\s*,\s*rule\s*=\s*(B3\/S23|23\/3))?[^\S\r\n]*$/im.exec(
         rle,
       );
-    if (!header) throw Error(T("Бібліотечна фігура не має заголовка B3/S23."));
+    if (!header) throw Error(T("The library pattern has no B3/S23 header."));
     const width = Number(header[1]),
       height = Number(header[2]);
     if (pattern.preserveBoard) {
@@ -104,8 +104,8 @@
     if (!verification?.output_roi) return "";
     const { x, y, width, height } = verification.output_roi;
     return (
-      T`Покоління ${verification.generation}. Вихід: ${x + 1}.${y + 1}–${x + width}.${y + height}. ` +
-      T`Для вибраних входів очікується ${verification.expected_output} (${verification.expected_population} живих клітин у вікні).`
+      T`Generation ${verification.generation}. Output: ${x + 1}.${y + 1}–${x + width}.${y + height}. ` +
+      T`Expected output for these inputs: ${verification.expected_output} (${verification.expected_population} live cells in the window).`
     );
   }
   return { getRLE, monitorPlacement, caseOf, readoutDescription };

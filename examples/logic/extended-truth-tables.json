@@ -10,7 +10,7 @@
     {
       "id": "nor",
       "label": "NOR",
-      "description": "Два вхідні глайдери можуть по черзі загасити один тактовий імпульс.",
+      "description": "Either input glider can extinguish the same clock pulse.",
       "pins": [
         "A",
         "B"
@@ -171,7 +171,7 @@
     {
       "id": "or",
       "label": "OR",
-      "description": "Другий тактовий імпульс інвертує спільний вихід NOR.",
+      "description": "A second clock pulse inverts the shared NOR output.",
       "pins": [
         "A",
         "B"
@@ -352,7 +352,7 @@
     {
       "id": "nand",
       "label": "NAND",
-      "description": "Тільки два одночасні входи записують блок AND, який перехоплює відкладений глайдер читання.",
+      "description": "Two simultaneous inputs form an AND block that intercepts the delayed readout glider.",
       "pins": [
         "A",
         "B"
@@ -513,7 +513,7 @@
     {
       "id": "xnor",
       "label": "XNOR",
-      "description": "Один вхід гасить тактовий глайдер. Два входи взаємно гасяться і пропускають його.",
+      "description": "One input extinguishes the clock glider. Two inputs annihilate each other and let it pass.",
       "pins": [
         "A",
         "B"
@@ -674,7 +674,7 @@
     {
       "id": "xor",
       "label": "XOR",
-      "description": "Другий тактовий глайдер інвертує XNOR та дає спільний вихід для 01 і 10.",
+      "description": "A second clock glider inverts XNOR, giving the same output for inputs 01 and 10.",
       "pins": [
         "A",
         "B"
@@ -854,8 +854,8 @@
     },
     {
       "id": "inhibit",
-      "label": "Інгібітор · A І НЕ B",
-      "description": "Глайдер A проходить до виходу, тільки коли глайдер B його не загасив.",
+      "label": "Inhibitor · A AND NOT B",
+      "description": "Glider A reaches the output only if glider B does not extinguish it.",
       "pins": [
         "A",
         "B"
@@ -994,8 +994,8 @@
     },
     {
       "id": "implies",
-      "label": "Імплікація · A ⇒ B",
-      "description": "Тактовий глайдер інвертує вихід інгібітора A І НЕ B.",
+      "label": "Implication · A ⇒ B",
+      "description": "A clock glider inverts the output of the A AND NOT B inhibitor.",
       "pins": [
         "A",
         "B"
@@ -1155,8 +1155,8 @@
     },
     {
       "id": "block-memory",
-      "label": "Пам’ять на 1 біт · запис і скидання",
-      "description": "На ході 60 у комірці зберігається D. Відкладений глайдер R=1 очищає її; R=0 зберігає запис.",
+      "label": "One-bit memory · write and reset",
+      "description": "At generation 60 the memory stores D. A delayed R=1 glider clears it. R=0 keeps the stored bit.",
       "pins": [
         "D",
         "R"

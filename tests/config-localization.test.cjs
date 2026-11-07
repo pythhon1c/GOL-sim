@@ -5,6 +5,8 @@ const path = require("node:path");
 const vm = require("node:vm");
 const test = require("node:test");
 const messages = require("../web/config-locales.js");
+const translated = (key, language) => messages[key]?.[language] ?? key;
+const rangeMessage = language => translated("Allowed range: {0}–{1}.", language).replace("{0}", "1").replace("{1}", "2000000000");
 const source = fs.readFileSync(path.join(__dirname, "../web/config-editor.js"), "utf8");
 
 // A small DOM model exercises updates of existing inputs, rather than snapshots of HTML.
@@ -59,7 +61,7 @@ function fixture() {
   const document = { createElement(tag) { return new Element(tag, document); } };
   const translator = {
     t(key, ...values) {
-      const template = language === "uk" ? key : messages[key]?.[language === "en" ? 0 : 1] ?? key;
+      const template = translated(key, language);
       return template.replace(/\{(\d+)\}/g, (match, index) => index < values.length ? String(values[index]) : match);
     },
   };
@@ -69,18 +71,16 @@ function fixture() {
 }
 const plain = value => JSON.parse(JSON.stringify(value));
 
-test("every configuration label, explanation and option has English and Russian text", () => {
+test("configuration labels use English source text and provide Russian and Ukrainian translations", () => {
   const { config } = fixture();
   const strings = [
     ...config.SECTIONS.flatMap(section => [section.title, section.description]),
     ...config.FIELDS.flatMap(field => [field.label, field.description, ...(field.options || []).map(option => option[1])]),
   ];
-  for (const key of strings.filter(value => /[А-Яа-яІіЇїЄєҐґ]/u.test(value))) {
-    assert.equal(messages[key]?.length, 2, `Missing translations: ${key}`);
-    assert.ok(messages[key][0].length > 0);
-    assert.ok(messages[key][1].length > 0);
-    assert.doesNotMatch(messages[key][0], /[А-Яа-яІіЇїЄєҐґ]/u);
-    assert.doesNotMatch(messages[key][1], /[ІіЇїЄєҐґ]/u);
+  for (const key of strings) {
+    assert.doesNotMatch(key, /\p{Script=Cyrillic}/u);
+    if (/^\d+ × \d+$/.test(key)) continue;
+    for (const language of ["ru", "uk"]) assert.ok(messages[key]?.[language]?.trim(), `Missing ${language} translation for ${key}`);
   }
 });
 
@@ -88,7 +88,7 @@ test("language changes localize validation and change labels without changing da
   const f = fixture(), base = f.config.normalizeConfig();
   const valid = f.config.normalizeConfig(base);
   valid.initial.seed = "18446744073709551615";
-  valid.initial.path = "C:\\Life\\Початок.rle";
+  valid.initial.path = "C:\\Life\\Café.rle";
   valid.engine.threads = 4;
   const exports = [];
   const plans = [];
@@ -101,17 +101,17 @@ test("language changes localize validation and change labels without changing da
     bad.engine.threads = Infinity;
     const errors = f.config.validateConfig(bad);
     const range = errors.find(item => item.path === "grid.width").message;
-    assert.equal(range, { en: "Allowed range: 1–2000000000.", ru: "Допустимый диапазон: 1–2000000000.", uk: "Доступний діапазон: 1–2000000000." }[language]);
+    assert.equal(range, rangeMessage(language));
     assert.equal(errors.find(item => item.path === "engine.threads").message,
-      { en: "A finite integer is required.", ru: "Ожидается конечное целое число.", uk: "Очікується скінченне ціле число." }[language]);
+      translated("A finite integer is required.", language));
   }
   assert.equal(exports[0], exports[1]);
   assert.equal(exports[0], exports[2]);
   assert.match(exports[0], /# LIFE ENGINE — complete startup configuration/);
   assert.match(exports[0], /seed = "18446744073709551615"/);
-  assert.match(exports[0], /Початок\.rle/);
+  assert.match(exports[0], /Café\.rle/);
   assert.equal(plans[0].restartChanges.find(change => change.path === "engine.threads").label, "CPU threads");
-  assert.equal(plans[1].restartChanges.find(change => change.path === "engine.threads").label, "Потоков CPU");
+  assert.equal(plans[1].restartChanges.find(change => change.path === "engine.threads").label, messages["CPU threads"].ru);
   for (const plan of plans) {
     for (const group of ["changes", "liveChanges", "restartChanges"]) for (const change of plan[group]) delete change.label;
   }
@@ -147,17 +147,17 @@ test("locale refresh preserves raw drafts, selection, baseline and control ident
   assert.equal(from.value, " 12.34 ");
   assert.deepEqual(plain(editor.baseline), baseline);
   assert.equal(changes, initialChanges, "Changing language must not publish a configuration edit");
-  assert.equal(container.querySelector("#cfg-error-grid.width").textContent, "Ожидается конечное целое число.");
-  assert.equal(container.querySelector("#cfg-rectangle-label").textContent, "Только прямоугольная область");
-  assert.equal(container.querySelector("#cfg-grid.wrap").children[0].textContent, "Выключено");
+  assert.equal(container.querySelector("#cfg-error-grid.width").textContent, messages["A finite integer is required."].ru);
+  assert.equal(container.querySelector("#cfg-rectangle-label").textContent, messages["Rectangular area only"].ru);
+  assert.equal(container.querySelector("#cfg-grid.wrap").children[0].textContent, messages["Disabled"].ru);
   f.language("uk");
   editor.refreshLocale();
-  assert.equal(container.querySelector("#cfg-rectangle-label").textContent, "Лише прямокутна область");
+  assert.equal(container.querySelector("#cfg-rectangle-label").textContent, messages["Rectangular area only"].uk);
   assert.equal(seed.value, "00018446744073709551615");
   f.language("en");
   editor.refreshLocale();
   assert.equal(container.querySelector("#cfg-rectangle-label").textContent, "Rectangular area only");
-  assert.doesNotMatch(container.textContent, /[А-Яа-яІіЇїЄєҐґ]/u);
+  assert.doesNotMatch(container.textContent, /\p{Script=Cyrillic}/u);
 });
 
 test("the shared CommonJS translator defaults to English and serves configuration messages", () => {
@@ -170,9 +170,9 @@ test("the shared CommonJS translator defaults to English and serves configuratio
       const draft = config.normalizeConfig();
       draft.grid.width = 0;
       assert.equal(config.validateConfig(draft).find(error => error.path === "grid.width").message,
-        { en: "Allowed range: 1–2000000000.", ru: "Допустимый диапазон: 1–2000000000.", uk: "Доступний діапазон: 1–2000000000." }[language]);
+        rangeMessage(language));
       const source = config.FIELDS.find(field => field.path === "engine.cycles_detection_interval").description;
-      assert.equal(i18n.t(source), language === "uk" ? source : messages[source][language === "en" ? 0 : 1]);
+      assert.equal(i18n.t(source), translated(source, language));
     }
   } finally {
     i18n.setLanguage("en");

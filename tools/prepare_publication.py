@@ -217,6 +217,16 @@ def validate_catalog(files: dict[str, bytes], allowed: set[str]) -> None:
     entries = json.loads(files['web/patterns.json'])
     if base + additions != entries:
         raise PublicationError('The browser and API catalogs are inconsistent')
+    # Check decoded metadata so escaped JSON strings receive the same validation.
+    devices = json.loads(files['examples/devices/catalog.json'])
+    for path, records in (('web/patterns.json', entries), ('examples/devices/catalog.json', devices)):
+        for record in records:
+            fields = {key: record[key] for key in ('name', 'type', 'note', 'search', 'description') if key in record}
+            if 'demo' in record:
+                fields['demo.observation'] = record['demo']['observation']
+            for key, value in fields.items():
+                if re.search(r'[\u0400-\u052f]', value):
+                    raise PublicationError(f"Expected English catalog text in {path} ({record['id']}.{key})")
     permitted_assets = set()
     for entry in entries:
         if entry.get('asset'):

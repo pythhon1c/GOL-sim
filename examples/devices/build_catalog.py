@@ -60,9 +60,9 @@ def build():
         # A nonempty default gives one meaningful preview without duplicating
         # four versions as unrelated entries in the catalog.
         best = variants[default]
-        entry = dict(id='logic-'+demo['id'],name=demo['label'],type='ЛОГІЧНА СХЕМА',
-            note=f"{demo['description']} Зчитування на ході {read['generation']}.",
-            description=demo['description']+' Одноразова схема: оберіть входи перед запуском.',
+        entry = dict(id='logic-'+demo['id'],name=demo['label'],type='LOGIC CIRCUIT',
+            note=f"{demo['description']} Read generation {read['generation']}.",
+            description=demo['description']+' Single-use circuit. Select the inputs before starting.',
             width=manifest['width'],height=manifest['height'],population=best['population'],
             search=' '.join(['logic gate',demo['label'],demo['id'],*demo['pins']]),
             provenance='original',source='examples/logic/EXTENDED.md',preserveBoard=True,

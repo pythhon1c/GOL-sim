@@ -8,18 +8,18 @@
   return {
   "en": {
     "categories": {
-      "АКТИВНИЙ СИГНАЛ": "ACTIVE SIGNAL",
-      "ВЕЛИКА ЛОГІЧНА СХЕМА": "LARGE LOGIC CIRCUIT",
-      "ГЕНЕРАТОР ГЛАЙДЕРІВ": "GLIDER GUN",
-      "ДОВГОЖИТЕЛЬ": "LONG-LIVED PATTERN",
-      "КОСМІЧНИЙ КОРАБЕЛЬ": "SPACESHIP",
-      "ЛОГІЧНА СХЕМА": "LOGIC CIRCUIT",
-      "ЛОГІЧНИЙ МОДУЛЬ": "LOGIC COMPONENT",
-      "ОДНОРАЗОВА ЛОГІЧНА СХЕМА": "SINGLE-USE LOGIC CIRCUIT",
-      "ОСЦИЛЯТОР": "OSCILLATOR",
-      "ПАФЕР / РУХОМИЙ СЛІД": "PUFFER / MOVING TRAIL",
-      "СТАБІЛЬНА ФІГУРА": "STILL LIFE",
-      "ШВИДКА МАШИНА": "QUICK DEMO MACHINE"
+      "ACTIVE SIGNAL": "ACTIVE SIGNAL",
+      "LARGE LOGIC CIRCUIT": "LARGE LOGIC CIRCUIT",
+      "GLIDER GUN": "GLIDER GUN",
+      "LONG-LIVED PATTERN": "LONG-LIVED PATTERN",
+      "SPACESHIP": "SPACESHIP",
+      "LOGIC CIRCUIT": "LOGIC CIRCUIT",
+      "LOGIC COMPONENT": "LOGIC COMPONENT",
+      "SINGLE-USE LOGIC CIRCUIT": "SINGLE-USE LOGIC CIRCUIT",
+      "OSCILLATOR": "OSCILLATOR",
+      "PUFFER / MOVING TRAIL": "PUFFER / MOVING TRAIL",
+      "STILL LIFE": "STILL LIFE",
+      "QUICK DEMO MACHINE": "QUICK DEMO MACHINE"
     },
     "patterns": {
       "glider": {
@@ -265,25 +265,25 @@
       },
       "logic-block-memory": {
         "name": "One-bit memory · write and reset",
-        "note": "At generation 60 the memory stores D. A delayed R=1 glider clears it; R=0 keeps the stored bit. Read generation 144.",
-        "description": "At generation 60 the memory stores D. A delayed R=1 glider clears it; R=0 keeps the stored bit. Single-use circuit. Select the inputs before starting."
+        "note": "At generation 60 the memory stores D. A delayed R=1 glider clears it. R=0 keeps the stored bit. Read generation 144.",
+        "description": "At generation 60 the memory stores D. A delayed R=1 glider clears it. R=0 keeps the stored bit. Single-use circuit. Select the inputs before starting."
       }
     }
   },
   "ru": {
     "categories": {
-      "АКТИВНИЙ СИГНАЛ": "АКТИВНЫЙ СИГНАЛ",
-      "ВЕЛИКА ЛОГІЧНА СХЕМА": "БОЛЬШАЯ ЛОГИЧЕСКАЯ СХЕМА",
-      "ГЕНЕРАТОР ГЛАЙДЕРІВ": "ГЕНЕРАТОР ГЛАЙДЕРОВ",
-      "ДОВГОЖИТЕЛЬ": "ДОЛГОЖИВУЩАЯ ФИГУРА",
-      "КОСМІЧНИЙ КОРАБЕЛЬ": "КОСМИЧЕСКИЙ КОРАБЛЬ",
-      "ЛОГІЧНА СХЕМА": "ЛОГИЧЕСКАЯ СХЕМА",
-      "ЛОГІЧНИЙ МОДУЛЬ": "ЛОГИЧЕСКИЙ МОДУЛЬ",
-      "ОДНОРАЗОВА ЛОГІЧНА СХЕМА": "ОДНОРАЗОВАЯ ЛОГИЧЕСКАЯ СХЕМА",
-      "ОСЦИЛЯТОР": "ОСЦИЛЛЯТОР",
-      "ПАФЕР / РУХОМИЙ СЛІД": "ПАФФЕР / ДВИЖУЩИЙСЯ СЛЕД",
-      "СТАБІЛЬНА ФІГУРА": "НЕПОДВИЖНАЯ ФИГУРА",
-      "ШВИДКА МАШИНА": "МАШИНА С БЫСТРОЙ ДЕМОНСТРАЦИЕЙ"
+      "ACTIVE SIGNAL": "АКТИВНЫЙ СИГНАЛ",
+      "LARGE LOGIC CIRCUIT": "БОЛЬШАЯ ЛОГИЧЕСКАЯ СХЕМА",
+      "GLIDER GUN": "ГЕНЕРАТОР ГЛАЙДЕРОВ",
+      "LONG-LIVED PATTERN": "ДОЛГОЖИВУЩАЯ ФИГУРА",
+      "SPACESHIP": "КОСМИЧЕСКИЙ КОРАБЛЬ",
+      "LOGIC CIRCUIT": "ЛОГИЧЕСКАЯ СХЕМА",
+      "LOGIC COMPONENT": "ЛОГИЧЕСКИЙ МОДУЛЬ",
+      "SINGLE-USE LOGIC CIRCUIT": "ОДНОРАЗОВАЯ ЛОГИЧЕСКАЯ СХЕМА",
+      "OSCILLATOR": "ОСЦИЛЛЯТОР",
+      "PUFFER / MOVING TRAIL": "ПАФФЕР / ДВИЖУЩИЙСЯ СЛЕД",
+      "STILL LIFE": "НЕПОДВИЖНАЯ ФИГУРА",
+      "QUICK DEMO MACHINE": "МАШИНА С БЫСТРОЙ ДЕМОНСТРАЦИЕЙ"
     },
     "patterns": {
       "glider": {
@@ -536,18 +536,18 @@
   },
   "uk": {
     "categories": {
-      "АКТИВНИЙ СИГНАЛ": "АКТИВНИЙ СИГНАЛ",
-      "ВЕЛИКА ЛОГІЧНА СХЕМА": "ВЕЛИКА ЛОГІЧНА СХЕМА",
-      "ГЕНЕРАТОР ГЛАЙДЕРІВ": "ГЕНЕРАТОР ГЛАЙДЕРІВ",
-      "ДОВГОЖИТЕЛЬ": "ДОВГОЖИТЕЛЬ",
-      "КОСМІЧНИЙ КОРАБЕЛЬ": "КОСМІЧНИЙ КОРАБЕЛЬ",
-      "ЛОГІЧНА СХЕМА": "ЛОГІЧНА СХЕМА",
-      "ЛОГІЧНИЙ МОДУЛЬ": "ЛОГІЧНИЙ МОДУЛЬ",
-      "ОДНОРАЗОВА ЛОГІЧНА СХЕМА": "ОДНОРАЗОВА ЛОГІЧНА СХЕМА",
-      "ОСЦИЛЯТОР": "ОСЦИЛЯТОР",
-      "ПАФЕР / РУХОМИЙ СЛІД": "ПАФЕР / РУХОМИЙ СЛІД",
-      "СТАБІЛЬНА ФІГУРА": "СТАБІЛЬНА ФІГУРА",
-      "ШВИДКА МАШИНА": "ШВИДКА МАШИНА"
+      "ACTIVE SIGNAL": "АКТИВНИЙ СИГНАЛ",
+      "LARGE LOGIC CIRCUIT": "ВЕЛИКА ЛОГІЧНА СХЕМА",
+      "GLIDER GUN": "ГЕНЕРАТОР ГЛАЙДЕРІВ",
+      "LONG-LIVED PATTERN": "ДОВГОЖИТЕЛЬ",
+      "SPACESHIP": "КОСМІЧНИЙ КОРАБЕЛЬ",
+      "LOGIC CIRCUIT": "ЛОГІЧНА СХЕМА",
+      "LOGIC COMPONENT": "ЛОГІЧНИЙ МОДУЛЬ",
+      "SINGLE-USE LOGIC CIRCUIT": "ОДНОРАЗОВА ЛОГІЧНА СХЕМА",
+      "OSCILLATOR": "ОСЦИЛЯТОР",
+      "PUFFER / MOVING TRAIL": "ПАФЕР / РУХОМИЙ СЛІД",
+      "STILL LIFE": "СТАБІЛЬНА ФІГУРА",
+      "QUICK DEMO MACHINE": "ШВИДКА МАШИНА"
     },
     "patterns": {
       "glider": {
@@ -749,12 +749,14 @@
       "blinker-puffer": {
         "name": "Фабрика блінкерів",
         "note": "Перший блінкер на 5-му ході, далі новий кожні 8 ходів. Рухомий генератор залишає ряд осциляторів.",
-        "demoObservation": "Генератор зсунувся ліворуч і залишив 16 блінкерів."
+        "demoObservation": "Генератор зсунувся ліворуч і залишив 16 блінкерів.",
+        "search": "швидка машина"
       },
       "block-laying-switch-engine": {
         "name": "Рухома фабрика блоків",
         "note": "Перший новий блок на 90-му ході. Рухомий двигун додає 8 блоків 2 × 2 за кожні 288 ходів.",
-        "demoObservation": "Двигун перемістився по діагоналі й додав 8 нерухомих блоків."
+        "demoObservation": "Двигун перемістився по діагоналі й додав 8 нерухомих блоків.",
+        "search": "швидка машина"
       },
       "logic-nor": {
         "name": "NOR",

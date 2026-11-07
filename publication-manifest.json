@@ -53,8 +53,8 @@
     },
     {
       "path": "CONTRIBUTING.md",
-      "bytes": 1353,
-      "sha256": "83782eaf4b6f6e0c194bc0953e9a480dd021585db07fce1de801ae64395b67d9"
+      "bytes": 1414,
+      "sha256": "e4a6aaaa96a0b1008241456c5d50335afc5b128399410b4d4c7fb98aeb103906"
     },
     {
       "path": "LICENSE",
@@ -128,23 +128,23 @@
     },
     {
       "path": "examples/devices/build_catalog.py",
-      "bytes": 4542,
-      "sha256": "a94559bc7aab3477b5551df32479fb0d4816cc3a57e465831bc0fc2eeaecc364"
+      "bytes": 4478,
+      "sha256": "07aef3d7a08ff4fa9b695c53bae654b3d5a29d6e049162861f1ddf83b26fec97"
     },
     {
       "path": "examples/devices/catalog.json",
-      "bytes": 2113,
-      "sha256": "fb139169f92660506109d9f7db5521bb1dec8d250d237a09bdbc3b7d5884a2dc"
+      "bytes": 1864,
+      "sha256": "08a3afb6584ee28b0d370a41eb981ca093d0abc7d8f1aa8024921b29c2212ac1"
     },
     {
       "path": "examples/logic/EXTENDED.md",
-      "bytes": 5374,
-      "sha256": "4626d45cf4368f767bb3c2e479bb9b13caf9a7352439b174fdd941183bd7ea5b"
+      "bytes": 3268,
+      "sha256": "c99c8b80789dcdb279f030e27d5e6f09671d76131aad7d0467041fa1b5dd53d9"
     },
     {
       "path": "examples/logic/README.md",
-      "bytes": 4482,
-      "sha256": "a35322602a590ea96cfa60e257a2ef3f51703bf0273ede0f8599331caf14cc1a"
+      "bytes": 2385,
+      "sha256": "ac9d254437850d97d4c72040376d90da706fbc0f442a09aa6f83fff30fb848a1"
     },
     {
       "path": "examples/logic/and/00.json",
@@ -228,13 +228,13 @@
     },
     {
       "path": "examples/logic/build_extensions.py",
-      "bytes": 7076,
-      "sha256": "a8833b5f332cac48b8e639ad3803f7421af2190f70457f50fff0a0dd8b965a70"
+      "bytes": 6683,
+      "sha256": "e7d5f22fd099cba1fb5e2cd877c701c57ee89739a5d1cb481897e345a3a8874b"
     },
     {
       "path": "examples/logic/extended-truth-tables.json",
-      "bytes": 22465,
-      "sha256": "4f25da7af17994d758c7a45e198de2c1eed1c5cec46dbd56803a618608fb5600"
+      "bytes": 21977,
+      "sha256": "fb9ece878250113586b6eb6d9706d0acc87403dbca4c44890a78450eeb88f2ba"
     },
     {
       "path": "examples/logic/implies/00.json",
@@ -683,8 +683,8 @@
     },
     {
       "path": "tests/config-localization.test.cjs",
-      "bytes": 8841,
-      "sha256": "2dd682a207e2f425a6be1d6c409286e90c822e7bfc34c2fc37e71e38cbd8367a"
+      "bytes": 8335,
+      "sha256": "d251d5f9f88b082d938e208792e57a94c9d3279e44f2dc91fc7368ca5a20ac42"
     },
     {
       "path": "tests/device-library.test.cjs",
@@ -708,8 +708,8 @@
     },
     {
       "path": "tests/frontend-i18n.test.cjs",
-      "bytes": 8055,
-      "sha256": "4629abfcf10a8288ea0d7fe7bf39cac9ae97cd2edaf164b0e286befc3cfd9cc5"
+      "bytes": 9193,
+      "sha256": "f420be7c63de688cca16f1f5631aa26d9e2bc9f5931785ed44fa04fc809f7827"
     },
     {
       "path": "tests/library-demo.test.cjs",
@@ -718,8 +718,8 @@
     },
     {
       "path": "tests/pattern-catalog.test.cjs",
-      "bytes": 5162,
-      "sha256": "0a47067dceb52a96b9b74085cedc7c47da033a5604552879bb4f8918459e62c1"
+      "bytes": 5096,
+      "sha256": "48f93821e8e474104361dd559a6776a3e6ec764055691f4181b6fc51915e20f4"
     },
     {
       "path": "tests/randomization-vectors.json",
@@ -738,8 +738,8 @@
     },
     {
       "path": "tests/test_config_ui.py",
-      "bytes": 5196,
-      "sha256": "1becb905403750e71cc9d935042e0807717ee2e98bbf55bb32ae6301d55c15a4"
+      "bytes": 5187,
+      "sha256": "7da5896b93881412415524a605bb504fa27c69514a31c6c7bdc2bc39516b13e3"
     },
     {
       "path": "tests/test_devices.py",
@@ -768,8 +768,8 @@
     },
     {
       "path": "tests/test_publication.py",
-      "bytes": 15553,
-      "sha256": "987ce1c2b6111fe0d5b8b5b3df4e655315225c9e047f66ab1a0b45ea2aafbd92"
+      "bytes": 18525,
+      "sha256": "dd6e7aa3c5141de8fe18066da671cac97ba82f72f28738d8282c4129a5cc90fd"
     },
     {
       "path": "tests/test_random_chunks.py",
@@ -793,63 +793,63 @@
     },
     {
       "path": "tools/prepare_publication.py",
-      "bytes": 20746,
-      "sha256": "03073b55ffad99a4160b142480616b9c31271e3ddf0cb0c435fd458683915b00"
+      "bytes": 21466,
+      "sha256": "aef8a0d06d059e2eb8f2592012f0ee46be12b2d15903886a3a5f2112b58135d8"
     },
     {
       "path": "web/app.js",
-      "bytes": 101453,
-      "sha256": "fd8ca5b6a343511adbd0da83492faad4be6f826740e865418bf649b726a06f84"
+      "bytes": 93923,
+      "sha256": "722a0755643c27b9ffc6bbbc756913929ba95214b98c6a8b53b5ba69db638042"
     },
     {
       "path": "web/catalog-locales.js",
-      "bytes": 40050,
-      "sha256": "c645042025953187aab5906c2f582ace844f84555a81bff10411402b72a9550c"
+      "bytes": 39571,
+      "sha256": "c4a885ee4bec6f8d83acd00f91475b6bb49d3fca5322810aa7143784058be0c0"
     },
     {
       "path": "web/catalog.js",
-      "bytes": 4357,
-      "sha256": "bae03ed1575aa200e6df304de110d47e362da4697c5c90559436e3beea9bed07"
+      "bytes": 4139,
+      "sha256": "c3c5d613210938ecfd0d9629fd26da9bb200b2143075337d30de3184fad4f4b7"
     },
     {
       "path": "web/config-editor.js",
-      "bytes": 43615,
-      "sha256": "9ef7325794df63f7848c70bf728d094916112ef46f7fc5089f884c406737bd18"
+      "bytes": 37159,
+      "sha256": "d908a83210b9bd40462cd870a6e76449a24a62379f191217ba7dd2446ef810f0"
     },
     {
       "path": "web/config-locales.js",
-      "bytes": 39593,
-      "sha256": "9aa2f3e2213f3593a083e696604d8d2f89659a1d1ef4de8a5291f5b100fd8963"
+      "bytes": 41340,
+      "sha256": "91e1e44228f7182f7dd263e4c94e79fe75e8671d8cd81e9b8cf42ebb15bf36b9"
     },
     {
       "path": "web/core.js",
-      "bytes": 22596,
-      "sha256": "f7f8839d1caee5bac11c1d8de54438ff2ffdb2293026b0ebe22f5eef96bb114a"
+      "bytes": 21782,
+      "sha256": "189a57e025daccc0245f04ad26409929d9785555d05899fbe8fcf1f633a3a038"
     },
     {
       "path": "web/device-library.js",
-      "bytes": 62414,
-      "sha256": "e3874a6e9696b941fef70f8c2af1f09c1027465202f08687b78e7086eaa662d8"
+      "bytes": 60677,
+      "sha256": "14b1c72a41779f5c9436e6d2b46053ee47467ef6c21c0f34d1513fd0c6b5ec57"
     },
     {
       "path": "web/i18n.js",
-      "bytes": 5438,
-      "sha256": "b273dee854f70b8dc0f58050e56ffea8a2fce26a083f60f9f282890d92e91191"
+      "bytes": 5579,
+      "sha256": "8304c07e90a6625a55a1dbe9ef6c3a74dcf94007d7c926771f752172c5ab68fa"
     },
     {
       "path": "web/index.html",
-      "bytes": 50925,
-      "sha256": "b06a9b0d66444c4690b8d81736dce626a47789982e5c7ad6e6d2e71530008429"
+      "bytes": 46085,
+      "sha256": "0bcbe836010127b0c041deb250947ba0421d6539501def987db092dabcfe78e0"
     },
     {
       "path": "web/patterns.js",
-      "bytes": 25094,
-      "sha256": "32fe00735d8cba1107d41cd12129ccc212c7ee0da6befce118c3cfaf4b996304"
+      "bytes": 21158,
+      "sha256": "3bcd6fcc15b08d06ae043a0ccc4ec6b666c1dd22933011d27a569c75a5fb24a7"
     },
     {
       "path": "web/patterns.json",
-      "bytes": 87190,
-      "sha256": "0f8eee25c525ed6d5c77986508576de1e731564de160aa14f1e4d6721bbbe403"
+      "bytes": 81517,
+      "sha256": "6b742b0b000bb729010ca13041e585c10af6291fac40bad599d299f8e9544027"
     },
     {
       "path": "web/patterns/blinker-puffer.js",
@@ -878,8 +878,8 @@
     },
     {
       "path": "web/ui-locales.js",
-      "bytes": 84605,
-      "sha256": "7655109d1022c682842e2c6aaa24f9767d7ff86f0125d1f5864926ad73f544d1"
+      "bytes": 84841,
+      "sha256": "9bb77a302386ec44f331a849925f76e82070e47a343ef68afba7cdf2030de582"
     }
   ]
 }

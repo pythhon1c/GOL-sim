@@ -197,7 +197,7 @@
     if (location.protocol === "file:")
       throw Error(
         T(
-          "Автономний режим. Відкрийте http://127.0.0.1:8765 для роботи із сервером.",
+          "Offline mode. Open http://127.0.0.1:8765 to connect to the server.",
         ),
       );
     const r = await fetch("/api" + path, {
@@ -213,17 +213,17 @@
         detail = (await r.json()).detail;
       } catch {}
       if (r.status === 401) {
-        setStatus(T("Потрібен токен · Налаштування → Симуляція / конфіг"));
+        setStatus(T("Token required · Settings → Simulation / config"));
         throw Error(
           T(
-            "Сервер потребує токен. Введіть LIFE_ACCESS_TOKEN у Налаштування → Симуляція / конфіг.",
+            "The server requires a token. Enter LIFE_ACCESS_TOKEN in Settings → Simulation / config.",
           ),
         );
       }
       throw Error(
         typeof detail === "string"
           ? detail
-          : JSON.stringify(detail) || T("Помилка сервера ") + r.status,
+          : JSON.stringify(detail) || T("Server error ") + r.status,
       );
     }
     return path === "/config"
@@ -238,7 +238,7 @@
         toast(e.message || String(e), true);
         if ($("settingsDialog").open)
           showSettingsFeedback(e.message || String(e), true);
-        setStatus(T("Помилка операції"));
+        setStatus(T("Operation failed"));
         doneProgress();
       }
     };
@@ -247,11 +247,11 @@
     state.connected = connected;
     $("connection").classList.toggle("offline", !connected);
     $("connection").innerHTML =
-      "<i></i>" + (connected ? T("Локальний сервер") : T("Автономний режим"));
+      "<i></i>" + (connected ? T("Local server") : T("Offline mode"));
     $("sendButton").hidden = state.mode !== "editor" || !connected;
     $("monitorMode").title = connected
-      ? T("Монітор Python-сервера")
-      : T("Потрібен запущений сервер");
+      ? T("Python server monitor")
+      : T("Start the server to connect");
     $("checkpointButton").disabled = !connected || state.mode !== "monitor";
     if ($("randomDialog").open) updateRandomRoute();
   }
@@ -269,11 +269,11 @@
     );
     $("dimensions").textContent = fmt(w.width) + " × " + fmt(w.height);
     $("boundaryLabel").textContent = w.wrap
-      ? T("Тор · краї з’єднані")
-      : T("Мертві за межею");
+      ? T("Torus · connected edges")
+      : T("Dead beyond the edges");
     $("emptyOverlay").hidden = currentPop() > 0 || !!state.paste;
     $("engineLabel").textContent =
-      state.mode === "editor" ? T("АВТОНОМНИЙ РЕДАКТОР") : "CPU · EXACT";
+      state.mode === "editor" ? T("OFFLINE EDITOR") : "CPU · EXACT";
     $("engineLabel").title = state.status?.engine || "";
     const rate = Number(
       state.status?.generations_per_second || state.status?.gps || 0,
@@ -282,13 +282,13 @@
       (state.mode === "editor"
         ? "—"
         : decimal(rate, rate > 100 ? 0 : rate > 0 && rate < 1 ? 3 : 1)) +
-      T(" <small>ходів/с</small>");
+      T(" <small>steps/s</small>");
     $("memoryInfo").textContent =
-      T("Кеш ") + decimal(state.cacheBytes / 1048576, 1) + T(" МБ");
+      T("Cache ") + decimal(state.cacheBytes / 1048576, 1) + T(" MB");
     $("memoryInfo").title =
-      T("RAM процесу: ") +
+      T("Process RAM: ") +
       decimal(Number(state.status?.resources?.rss_bytes || 0) / 1048576, 1) +
-      T(" МБ");
+      T(" MB");
     $("undoButton").disabled = state.busy || !state.history.length;
     $("redoButton").disabled = state.busy || !state.redo.length;
     $("copyButton").disabled = state.busy || !state.selection;
@@ -299,7 +299,7 @@
       ? fmt(state.selection.width) +
         " × " +
         fmt(state.selection.height) +
-        T(" виділено")
+        T(" selected")
       : "";
   }
   function updateRun() {
@@ -308,14 +308,14 @@
     const s = state.status || {},
       running = !!s.running;
     $("runButton").innerHTML = running
-      ? T("<span>Ⅱ</span> Призупинити")
-      : T("<span>▶</span> Запустити");
+      ? T("<span>Ⅱ</span> Pause")
+      : T("<span>▶</span> Run");
     $("runLabel").textContent =
       state.mode === "editor"
-        ? T("Редагування")
+        ? T("Editing")
         : running
-          ? T("Працює")
-          : T("Пауза");
+          ? T("Running")
+          : T("Paused");
     $("runLabel").classList.toggle(
       "running",
       running && state.mode === "monitor",
@@ -331,10 +331,10 @@
     $("stepProgress").style.width =
       p === null ? "0%" : Math.round(p * 100) + "%";
     $("eta").textContent = !running
-      ? T("Симуляція призупинена")
+      ? T("Simulation paused")
       : Number.isFinite(s.eta_seconds) && s.eta_seconds !== null
-        ? T("Орієнтовно ") + decimal(Number(s.eta_seconds), 1) + T(" с")
-        : T("Обчислення · оцінка після завершення ходу");
+        ? T("About ") + decimal(Number(s.eta_seconds), 1) + T(" s")
+        : T("Computing · estimate after this step");
   }
   async function poll() {
     try {
@@ -374,7 +374,7 @@
       if (checkpoint) $("checkpointButton").title = JSON.stringify(checkpoint);
       if (s.error && s.error !== lastServerError) {
         lastServerError = s.error;
-        toast(T("Симуляцію зупинено: ") + s.error, true);
+        toast(T("Simulation stopped: ") + s.error, true);
       }
       if (!s.error) lastServerError = "";
     } catch (e) {
@@ -382,7 +382,7 @@
       if (!state.initialFit) {
         state.initialFit = true;
         setMode("editor");
-        if (e.message.includes(T("токен"))) toast(e.message, true);
+        if (e.message.includes(T("token"))) toast(e.message, true);
         else showDialog("newDialog");
       }
       updateRun();
@@ -394,24 +394,24 @@
     const mode = state.mode;
     $("modeTitle").innerHTML =
       mode === "monitor"
-        ? T("Спостерігайте<br>за еволюцією.")
-        : T("Створюйте<br>власні світи.");
+        ? T("Watch<br>life evolve.")
+        : T("Create<br>your own worlds.");
     $("modeDescription").innerHTML =
       mode === "monitor"
         ? T(
-            "Великі світи. Прості правила.<br>Кожне покоління — точний розрахунок.",
+            "Large worlds. Simple rules.<br>Every generation computed exactly.",
           )
         : T(
-            "Від першої клітини до цілої схеми.<br>Ваш простір для експериментів.",
+            "From a single cell to a complete circuit.<br>Your space to experiment.",
           );
     $("controlHeading").textContent =
-      mode === "monitor" ? T("КЕРУВАННЯ") : T("ІНСТРУМЕНТИ");
+      mode === "monitor" ? T("CONTROLS") : T("TOOLS");
   }
   function setMode(mode) {
     if (mode === "monitor" && !state.connected) {
       toast(
         T(
-          "Запустіть сервер і відкрийте http://127.0.0.1:8765. Конфігуратор працює автономно.",
+          "Start the server and open http://127.0.0.1:8765. The editor works offline.",
         ),
         true,
       );
@@ -434,7 +434,7 @@
     updateStats();
     updateRun();
     fitWorld();
-    setStatus(mode === "editor" ? T("Автономний редактор") : T("Монітор"));
+    setStatus(mode === "editor" ? T("Offline editor") : T("Monitor"));
     syncPaste();
   }
   function heatOptions() {
@@ -449,8 +449,8 @@
     $("heatLayerButton").hidden = !monitor;
     $("heatLayerButton").disabled = !state.connected || !cycles?.supported;
     $("heatLayerButton").title = cycles?.supported
-      ? T("Умовна активність за підтвердженими циклами й щільністю")
-      : T("Потрібен сервер із підтримкою охоронців циклів");
+      ? T("Qualitative activity from verified cycles and density")
+      : T("Requires a server with cycle guards");
     $("lifeLayerButton").classList.toggle("active", !heat);
     $("heatLayerButton").classList.toggle("active", heat);
     $("lifeLayerButton").setAttribute("aria-pressed", String(!heat));
@@ -461,21 +461,21 @@
       "aria-label",
       heat
         ? T(
-            "Теплова карта: порожнє чорне, короткі підтверджені цикли холодні, активні та щільні ділянки теплі",
+            "Heatmap: empty is black, short verified cycles are cold, active and dense areas are warm",
           )
-        : T("Поле: чорні клітини мертві, білі живі"),
+        : T("Field: dead cells are black, live cells are white"),
     );
     let explanation = monitor
-      ? T("Чорне — мертве · біле — живе")
-      : T("Редактор · точні клітини, відтінки щільності");
+      ? T("Black is dead · white is alive")
+      : T("Editor · exact cells, density shades");
     if (heat) {
-      explanation = T("Умовна активність · не ентропія Шеннона");
+      explanation = T("Qualitative activity · not Shannon entropy");
       if (!cycles?.enabled)
-        explanation += T(" · пошук вимкнено, періоди невідомі");
+        explanation += T(" · detection off, periods unknown");
       else if (
         Number(state.status?.generation) < Number(cycles.start_generation)
       )
-        explanation += T(" · пошук із ходу ") + fmt(cycles.start_generation);
+        explanation += T(" · detection starts at step ") + fmt(cycles.start_generation);
     }
     $("layerExplanation").textContent = explanation;
     $("layerExplanation").title = explanation;
@@ -483,7 +483,7 @@
   function setLayer(layer) {
     if (state.mode !== "monitor" || layer === state.layer) return;
     if (layer === "cycles" && !state.status?.cycles?.supported) {
-      toast(T("Цей сервер ще не підтримує охоронців циклів."), true);
+      toast(T("This server does not yet support cycle guards."), true);
       return;
     }
     state.layer = layer;
@@ -553,7 +553,7 @@
   function viewChanged() {
     scheduleRender();
     if (state.mode === "monitor") {
-      progress(T("Підготовка масштабу"), 0.15);
+      progress(T("Preparing zoom"), 0.15);
       clearTimeout(zoomTimer);
       zoomTimer = setTimeout(requestViewport, 110);
     }
@@ -657,7 +657,7 @@
     state.requesting = true;
     state.wantsRefresh = false;
     const serial = ++state.requestSerial;
-    progress(T("Завантаження видимої області"), 0.25);
+    progress(T("Loading visible area"), 0.25);
     try {
       const q = new URLSearchParams(spec);
       q.set("layer", requestedLayer);
@@ -683,7 +683,7 @@
           result.cycles.period_log2_sum?.length !== result.counts.length ||
           result.cycles.period_max?.length !== result.counts.length)
       )
-        throw Error(T("Сервер не повернув повні метадані циклів."));
+        throw Object.assign(new Error(T("The server returned incomplete cycle metadata.")), { code: "CYCLE_METADATA_UNAVAILABLE" });
       result.layer = result.layer || requestedLayer;
       state.viewport = result;
       state.viewportKey = C.viewportCacheKey(result);
@@ -700,7 +700,7 @@
         state.cacheBytes -= state.cache.get(first).bytes;
         state.cache.delete(first);
       }
-      progress(T("Поле готове"), 1);
+      progress(T("Field ready"), 1);
       scheduleRender();
       updateStats();
     } catch (e) {
@@ -708,13 +708,13 @@
       if (
         requestedLayer === "cycles" &&
         state.layer === "cycles" &&
-        /не повернув|not support|unsupported/i.test(e.message)
+        (e.code === "CYCLE_METADATA_UNAVAILABLE" || /not support|unsupported/i.test(e.message))
       ) {
         state.layer = "life";
         state.viewport = null;
         updateLayerToolbar();
         state.wantsRefresh = true;
-        toast(T("Теплова карта недоступна: ") + e.message, true);
+        toast(T("Heatmap unavailable: ") + e.message, true);
       }
     } finally {
       state.requesting = false;
@@ -913,7 +913,7 @@
       Math.max(1, Math.floor(v.x) + 1) + "." + Math.max(1, Math.floor(v.y) + 1);
     const lod = data?.scale || 1;
     $("lodLabel").textContent =
-      lod === 1 ? T("Клітини") : lod + " × " + lod + T(" / блок");
+      lod === 1 ? T("Cells") : lod + " × " + lod + T(" / block");
     canvas.style.cursor =
       state.space || state.tool === "pan"
         ? "grab"
@@ -987,7 +987,7 @@
         state.historyBytes = 0;
         toast(
           T(
-            "Операцію виконано. Вона перевищує бюджет історії, тому скасування недоступне.",
+            "Operation complete. It exceeds the history budget, so undo is unavailable.",
           ),
         );
       } else {
@@ -1019,7 +1019,7 @@
   }
   function line(a, b, value) {
     if (Math.max(Math.abs(b.x - a.x), Math.abs(b.y - a.y)) > 2000000)
-      throw Error(T("Лінія перевищує ліміт 2 млн клітин за одну операцію."));
+      throw Error(T("A line cannot exceed 2 million cells per operation."));
     let x = a.x,
       y = a.y,
       dx = Math.abs(b.x - x),
@@ -1041,7 +1041,7 @@
         y += sy;
       }
       if (++steps > 2000000)
-        throw Error(T("Лінія завелика для однієї операції редактора."));
+        throw Error(T("The line is too large for one editor operation."));
     }
   }
   canvas.addEventListener(
@@ -1088,7 +1088,7 @@
       const p = eventCell(e);
       state.cursor = p;
       $("cursorPosition").textContent =
-        T("Курсор ") + (p.x + 1) + "." + (p.y + 1);
+        T("Cursor ") + (p.x + 1) + "." + (p.y + 1);
       const d = state.drag;
       if (d?.tool === "pan") {
         state.view.x = d.x - (e.clientX - d.px) / state.view.zoom;
@@ -1167,12 +1167,12 @@
   }
   function refreshToolHint() {
     const hints = {
-      draw: T("Малюйте лівою кнопкою. Права кнопка стирає."),
-      erase: T("Стирайте клітини. Пробіл + рух — переміщення."),
-      pan: T("Перетягуйте поле. Колесо змінює масштаб."),
-      select: T("Перетягніть прямокутну область. Ctrl+C — копія."),
-      line: T("Проведіть точну клітинну лінію між двома точками."),
-      rect: T("Намалюйте контур прямокутника."),
+      draw: T("Draw with the left mouse button. Right-click erases."),
+      erase: T("Erase cells. Hold Space and drag to pan."),
+      pan: T("Drag to pan. Scroll to zoom."),
+      select: T("Drag a rectangular selection. Ctrl+C copies it."),
+      line: T("Draw a precise cell line between two points."),
+      rect: T("Draw a rectangle outline."),
     };
     $("toolHint").textContent = hints[state.tool];
     scheduleRender();
@@ -1186,13 +1186,13 @@
   }
   function copySelection(cut = false) {
     if (state.busy) return;
-    if (!state.selection) return toast(T("Спочатку виділіть область."));
+    if (!state.selection) return toast(T("Select an area first."));
     const r = state.selection,
       cells = [];
     for (const [x, y] of state.grid.cells(r)) {
       if (cells.length >= 2000000)
         return toast(
-          T("Буфер редактора обмежений 2 млн живих клітин. Зменште виділення."),
+          T("The editor clipboard is limited to 2 million live cells. Reduce the selection."),
           true,
         );
       cells.push([x - r.x, y - r.y]);
@@ -1201,15 +1201,15 @@
     if (cut) clearSelection();
     updateStats();
     toast(
-      T("Скопійовано ") +
+      T("Copied ") +
         fmt(state.clipboard.cells.length) +
-        T(" живих клітин."),
+        T(" live cells."),
     );
   }
   function startPaste() {
     if (state.busy) return;
     if (!state.clipboard)
-      return toast(T("Буфер порожній. Скопіюйте область або оберіть фігуру."));
+      return toast(T("The clipboard is empty. Copy an area or choose a pattern."));
     state.paste = state.clipboard.previewGrid
       ? {
           width: state.clipboard.width,
@@ -1241,7 +1241,7 @@
     )
       return toast(
         T(
-          "Фігура має повністю поміститися в поле. Змініть місце або розмір поля.",
+          "The entire pattern must fit inside the field. Change its position or the field size.",
         ),
         true,
       );
@@ -1253,7 +1253,7 @@
     state.paste = null;
     syncPaste();
     updateStats();
-    setStatus(T("Фігуру вставлено"));
+    setStatus(T("Pattern pasted"));
   }
   function transformSelection(kind) {
     if (state.busy) return;
@@ -1287,20 +1287,20 @@
       return;
     }
     if (!state.selection)
-      return toast(T("Виділіть область або підготуйте вставку."));
+      return toast(T("Select an area or prepare a paste."));
     const r = state.selection,
       cells = [];
     for (const [x, y] of state.grid.cells(r)) {
       if (cells.length >= 2000000)
         return toast(
-          T("Перетворення обмежено 2 млн живих клітин за одну операцію."),
+          T("Transformations are limited to 2 million live cells per operation."),
           true,
         );
       cells.push([x - r.x, y - r.y]);
     }
     const p = C.transform(cells, r.width, r.height, kind);
     if (r.x + p.width > state.grid.width || r.y + p.height > state.grid.height)
-      return toast(T("Повернута область виходить за межі поля."), true);
+      return toast(T("The rotated area extends beyond the field."), true);
     transactionStart();
     for (const [x, y] of Array.from(state.grid.cells(r))) editCell(x, y, 0);
     for (const [x, y] of p.cells) editCell(r.x + x, r.y + y, 1);
@@ -1308,7 +1308,7 @@
     transactionEnd();
   }
   function resetEditor(grid) {
-    if (state.busy) throw Error(T("Дочекайтеся завершення обробки поля."));
+    if (state.busy) throw Error(T("Wait for field processing to finish."));
     state.grid = grid;
     state.selection = null;
     state.paste = null;
@@ -1325,7 +1325,7 @@
     state.grid.width = width;
     state.grid.height = height;
     updateStats();
-    toast(T("Поле розширено для фігури. Наявні клітини збережено."));
+    toast(T("Field expanded to fit the pattern. Existing cells preserved."));
   }
   function parseCoord(text) {
     const m = String(text)
@@ -1333,7 +1333,7 @@
       .match(/^(\d+)\.(\d+)$/);
     if (!m)
       throw Error(
-        T("Введіть координати як стовпець.рядок, наприклад 1666.1888."),
+        T("Enter coordinates as column.row, for example 1666.1888."),
       );
     return { x: Number(m[1]) - 1, y: Number(m[2]) - 1 };
   }
@@ -1342,14 +1342,14 @@
       action === "random" &&
       C.randomRoute("editor", data.width, data.height) === "server"
     )
-      throw Error(T("Велике поле можна заповнити лише на сервері."));
-    if (state.busy) throw Error(T("Дочекайтеся завершення поточної операції."));
+      throw Error(T("Large fields can only be randomized on the server."));
+    if (state.busy) throw Error(T("Wait for the current operation to finish."));
     state.busy = true;
     updateBusy();
     progress(
       action === "random"
-        ? T("Заповнення області")
-        : T("Читання початкового стану"),
+        ? T("Filling area")
+        : T("Reading initial state"),
       0.05,
     );
     if (state.worker) state.worker.terminate();
@@ -1367,13 +1367,13 @@
         state.worker = worker;
         worker.onmessage = (e) => {
           if (e.data.progress !== undefined)
-            progress(T("Заповнення області"), e.data.progress);
+            progress(T("Filling area"), e.data.progress);
           if (e.data.error) reject(Error(e.data.error));
           if (e.data.done)
             resolve({ ...e.data, grid: C.SparseGrid.unpack(e.data.grid) });
         };
         worker.onerror = (e) =>
-          reject(Error(e.message || T("Помилка фонового обробника.")));
+          reject(Error(e.message || T("Background worker error.")));
         worker.postMessage({ action, data });
       });
     } finally {
@@ -1423,7 +1423,7 @@
       await api("/import", { text, format });
       await refreshNow();
       fitWorld();
-      toast(T("Початковий стан завантажено в симуляцію."));
+      toast(T("Initial state loaded into the simulation."));
       return;
     }
     const parsed = await runWorker(format === "json" ? "json" : "rle", {
@@ -1440,7 +1440,7 @@
           oy = m.origin_y || 0;
         for (const [x, y] of parsed.grid.cells()) {
           if (!grid.inside(x + ox, y + oy))
-            throw Error(T("RLE-позиція виходить за межі поля."));
+            throw Error(T("The RLE position extends beyond the field."));
           grid.set(x + ox, y + oy, 1);
         }
         resetEditor(grid);
@@ -1466,11 +1466,11 @@
     }
     toast(
       format === "json"
-        ? T("Поле імпортовано.")
-        : T("RLE прочитано. ") +
+        ? T("Field imported.")
+        : T("RLE loaded. ") +
             (state.paste
-              ? T("Оберіть місце вставлення.")
-              : T("Поле відновлено.")),
+              ? T("Choose where to paste.")
+              : T("Field restored.")),
     );
   }
   async function refreshNow() {
@@ -1507,8 +1507,8 @@
     const n = Number($("speed").value);
     $("speedValue").textContent =
       n === 10
-        ? T("Максимальна")
-        : fmt([1, 2, 5, 10, 20, 50, 100, 200, 500, 1000][n]) + T(" ходів/с");
+        ? T("Maximum")
+        : fmt([1, 2, 5, 10, 20, 50, 100, 200, 500, 1000][n]) + T(" steps/s");
   };
   $("speed").onchange = safe(async () => {
     const n = Number($("speed").value),
@@ -1552,14 +1552,14 @@
     } else resetEditor(new C.SparseGrid(w, h, wrap));
     closeDialog($("newDialog"));
     fitWorld();
-    setStatus(T("Створено нове поле"));
+    setStatus(T("New field created"));
   });
   $("gotoForm").onsubmit = safe((e) => {
     e.preventDefault();
     const p = parseCoord($("gotoInput").value),
       w = world();
     if (p.x < 0 || p.y < 0 || p.x >= w.width || p.y >= w.height)
-      throw Error(T("Координати виходять за межі поля."));
+      throw Error(T("Coordinates are outside the field."));
     state.view.zoom = Math.max(state.view.zoom, 8);
     state.view.x = p.x + 0.5 - state.width / state.view.zoom / 2;
     state.view.y = p.y + 0.5 - state.height / state.view.zoom / 2;
@@ -1578,7 +1578,7 @@
       b.y >= w.height
     )
       throw Error(
-        T("Перевірте прямокутник: координати мають бути всередині поля."),
+        T("Check the rectangle: its coordinates must lie inside the field."),
       );
     return { x: a.x, y: a.y, width: b.x - a.x + 1, height: b.y - a.y + 1 };
   }
@@ -1592,43 +1592,43 @@
     } catch {}
     const count = (w, h) => (BigInt(w) * BigInt(h)).toLocaleString(I.locale());
     $("randomCounts").textContent =
-      T("Поле: ") +
+      T("Field: ") +
       fmt(w.width) +
       " × " +
       fmt(w.height) +
       " (" +
       count(w.width, w.height) +
-      T(" клітин). Область: ") +
+      T(" cells). Area: ") +
       (rect
         ? fmt(rect.width) +
           " × " +
           fmt(rect.height) +
           " (" +
           count(rect.width, rect.height) +
-          T(" клітин).")
-        : T("перевірте координати."));
+          T(" cells).")
+        : T("check the coordinates."));
     $("randomRouteDetails").textContent = !server
       ? T(
-          "У браузері: буде замінено лише вибрану область редактора. Решта малюнка збережеться.",
+          "In the browser: only the selected editor area will be replaced. The rest of your drawing is preserved.",
         )
       : (state.mode === "editor"
           ? T(
-              "Поле понад 4 194 304 клітини заповнює сервер. Малюнок редактора збережеться. ",
+              "Fields larger than 4,194,304 cells are randomized on the server. Your editor drawing is preserved. ",
             )
-          : T("Обчислення на сервері. ")) +
+          : T("Server computation. ")) +
         T(
-          "Буде створено нове серверне поле замість поточного; поза вибраною областю всі клітини мертві.",
+          "A new server field will replace the current one; cells outside the selected area will be dead.",
         ) +
         (!state.connected
           ? T(
-              " Запустіть сервер і відкрийте http://127.0.0.1:8765 або експортуйте стартовий config.toml у налаштуваннях.",
+              " Start the server and open http://127.0.0.1:8765, or export a startup config.toml in Settings.",
             )
           : "");
     $("randomSubmit").textContent = randomServerPending
-      ? T("Створюємо на сервері…")
+      ? T("Creating on server…")
       : server
-        ? T("Створити нове поле на сервері")
-        : T("Заповнити область у браузері");
+        ? T("Create a new server field")
+        : T("Fill area in browser");
     $("randomSubmit").disabled =
       randomServerPending || !rect || (server && !state.connected);
     for (const name of ["from", "to", "density", "seed"])
@@ -1711,14 +1711,14 @@
       density = Number(f.elements.density.value) / 100,
       seed = C.randomSeed(f.elements.seed.value);
     if (!Number.isFinite(density) || density < 0.01 || density > 0.99)
-      throw Error(T("Щільність має бути 1–99%."));
+      throw Error(T("Density must be 1–99%."));
     if (randomServerPending || state.busy)
-      throw Error(T("Дочекайтеся завершення поточної операції."));
+      throw Error(T("Wait for the current operation to finish."));
     if (C.randomRoute(state.mode, w.width, w.height) === "server") {
       if (!state.connected)
         throw Error(
           T(
-            "Для цього поля запустіть сервер і відкрийте http://127.0.0.1:8765 або завантажте стартовий config.toml.",
+            "For this field, start the server and open http://127.0.0.1:8765, or download a startup config.toml.",
           ),
         );
       randomServerPending = true;
@@ -1741,7 +1741,7 @@
         await refreshNow();
         toast(
           T(
-            "Створено новий серверний стан. Поза прямокутником усі клітини мертві.",
+            "New server state created. Cells outside the rectangle are dead.",
           ),
         );
       } catch (error) {
@@ -1764,7 +1764,7 @@
         seed,
       });
       replaceRegionFromGrid(result.grid, rect);
-      toast(T("Область заповнено. Живих: ") + fmt(result.grid.population));
+      toast(T("Area filled. Live cells: ") + fmt(result.grid.population));
     }
     scheduleRender();
   });
@@ -1774,7 +1774,7 @@
     if (!file) return;
     if (file.size > 256 * 1048576)
       throw Error(
-        T("Файл перевищує 256 МБ. Скористайтеся server initial_state.path."),
+        T("The file exceeds 256 MB. Use the server's initial.path setting."),
       );
     const text = await file.text();
     e.target.value = "";
@@ -1793,7 +1793,7 @@
         headers: authHeaders(),
       });
       if (!r.ok) {
-        let message = T("Не вдалося експортувати стан.");
+        let message = T("Could not export the state.");
         try {
           message = (await r.json()).detail || message;
         } catch {}
@@ -1808,7 +1808,7 @@
       if (state.grid.population > 2000000)
         throw Error(
           T(
-            "Текстовий експорт редактора обмежений 2 млн живих клітин. Для більших станів використовуйте рандомізацію сервера та контрольні точки.",
+            "Editor text exports are limited to 2 million live cells. For larger states, use server randomization and checkpoints.",
           ),
         );
       download(
@@ -1819,13 +1819,13 @@
         format === "json" ? "application/json" : "text/plain",
       );
     }
-    toast(T("Файл підготовлено."));
+    toast(T("File ready."));
   });
   $("sendButton").onclick = safe(async () => {
     if (state.grid.population > 2000000)
       throw Error(
         T(
-          "Передача початкового стану обмежена 2 млн живих клітин. Більші випадкові поля створюйте на сервері.",
+          "Initial-state transfers are limited to 2 million live cells. Create larger random fields on the server.",
         ),
       );
     await api("/import", {
@@ -1834,13 +1834,13 @@
     });
     await refreshNow();
     setMode("monitor");
-    toast(T("Поле передано. Можна запускати симуляцію."));
+    toast(T("Field transferred. You can start the simulation."));
   });
   $("checkpointButton").onclick = safe(async () => {
-    setStatus(T("Збереження стану…"));
+    setStatus(T("Saving state…"));
     const result = await api("/checkpoint", {});
-    toast(result.message || T("Контрольну точку збережено."));
-    setStatus(T("Стан збережено"));
+    toast(result.message || T("Checkpoint saved."));
+    setStatus(T("State saved"));
   });
   const Catalog = window.LifeCatalog;
   let detailPattern = null;
@@ -1877,13 +1877,13 @@
   function updatePatternDetail() {
     const p = selectedPatternCase();
     $("detailSize").textContent =
-      T`${fmt(p.width)} × ${fmt(p.height)} клітин · ${fmt(p.population)} живих на старті.`;
+      T`${fmt(p.width)} × ${fmt(p.height)} cells · ${fmt(p.population)} initially alive.`;
     const logic = hasLogicReadout(p);
     const generation = patternTargetGeneration(p);
     const readout =
       Catalog.readoutDescription(p.verification) ||
       (hasDeviceDemo(p)
-        ? T`Покоління ${generation}. ${p.demo.observation}`
+        ? T`Generation ${generation}. ${p.demo.observation}`
         : "");
     $("detailReadout").hidden = !readout;
     $("detailReadout").textContent = readout;
@@ -1893,24 +1893,24 @@
     $("detailNote").textContent = detail.description || detail.note;
     $("detailLoad").textContent =
       state.mode === "editor"
-        ? T("Підготувати вставлення")
-        : T("Завантажити в монітор");
+        ? T("Prepare to paste")
+        : T("Load into monitor");
     const editor = state.mode === "editor";
     const canCompute = !editor && generation !== null;
     $("detailComputeRow").hidden = !canCompute;
     $("detailCompute").disabled = !canCompute;
     $("detailComputeLabel").textContent = logic
-      ? T("Обчислити до зчитування")
-      : T("Обчислити до демонстрації");
+      ? T("Run to readout")
+      : T("Run to demonstration");
     $("detailActionHint").textContent = editor
-      ? T("Оберіть місце на полі, щоб вставити фігуру.")
+      ? T("Choose a place on the field to paste the pattern.")
       : T(
-          "Схема замінить поточне поле монітора й відкриється на паузі з покоління 0.",
+          "This circuit replaces the monitor's current field and opens paused at generation 0.",
         );
     if (canCompute && $("detailCompute").checked) {
       $("detailActionHint").textContent = logic
-        ? T`Схема замінить поле монітора. Рушій виконає ходи B3/S23 до покоління ${generation} і порахує живі клітини у вихідному вікні.`
-        : T`Схема замінить поле монітора. Рушій виконає ходи B3/S23 до покоління ${generation} і зупиниться для перегляду.`;
+        ? T`This circuit replaces the monitor's field. The engine will run B3/S23 to generation ${generation} and count live cells in the output window.`
+        : T`This circuit replaces the monitor's field. The engine will run B3/S23 to generation ${generation} and pause for viewing.`;
     }
   }
   function openPatternDetail(p) {
@@ -1924,8 +1924,8 @@
     if (p.variants) $("detailVariant").value = String(p.defaultVariant || 0);
     $("detailLoad").textContent =
       state.mode === "editor"
-        ? T("Підготувати вставлення")
-        : T("Завантажити в монітор");
+        ? T("Prepare to paste")
+        : T("Load into monitor");
     $("detailCompute").checked = false;
     updatePatternDetail();
     closeDialog($("patternsDialog"));
@@ -1972,7 +1972,7 @@
               y: placement.y + p.demo.view.y,
             });
           }
-          toast(T`${p.name} · Покоління ${generation}. ${p.demo.observation}`);
+          toast(T`${p.name} · Generation ${generation}. ${p.demo.observation}`);
           return;
         }
         const query = new URLSearchParams({
@@ -1983,11 +1983,11 @@
         });
         const snapshot = await api("/viewport?" + query);
         if (snapshot.run_id !== runId || snapshot.generation !== generation)
-          throw Error(T("Стан вихідного вікна змінився до зчитування."));
+          throw Error(T("The output window changed before it could be read."));
         if (state.mode !== "monitor") return;
         const count = snapshot.counts.reduce((sum, cell) => sum + cell, 0);
         toast(
-          T`${p.name} · Хід ${generation}. Виміряно живих клітин у вихідному вікні: ${count}.`,
+          T`${p.name} · Step ${generation}. Live cells measured in the output window: ${count}.`,
         );
         return;
       }
@@ -1996,14 +1996,14 @@
         status.generation > generation ||
         (!status.running && !status.pending_steps)
       )
-        throw Error(T("Обчислення перервано до потрібного покоління."));
+        throw Error(T("Computation stopped before the target generation."));
       await new Promise((resolve) => setTimeout(resolve, 650));
       if (state.mode !== "monitor") return;
       status = await api("/status");
     }
   }
   async function loadLibraryPattern(p, compute = false) {
-    if (state.busy) throw Error(T("Дочекайтеся завершення поточної операції."));
+    if (state.busy) throw Error(T("Wait for the current operation to finish."));
     const mode = state.mode;
     const targetGeneration = patternTargetGeneration(p);
     const rle = await Catalog.getRLE(p);
@@ -2014,7 +2014,7 @@
       placement = Catalog.monitorPlacement(p, rle, world());
       state.busy = true;
       updateBusy();
-      progress(T("Завантаження схеми на сервер"), 0.15);
+      progress(T("Loading circuit onto server"), 0.15);
       try {
         // Send compact RLE directly; large devices never become million-entry
         // coordinate arrays in the browser's monitor or JSON request body.
@@ -2029,13 +2029,13 @@
             loaded.running ||
             loaded.pending_steps
           )
-            throw Error(T("Для обчислення потрібна початкова схема на паузі."));
+            throw Error(T("Computation requires the initial circuit to be paused."));
           computation = await api("/control", {
             action: "step",
             steps: targetGeneration,
           });
           if (computation.run_id !== loaded.run_id)
-            throw Error(T("Поле монітора змінилося перед обчисленням."));
+            throw Error(T("The monitor's field changed before computation."));
         }
         await refreshNow();
       } finally {
@@ -2066,7 +2066,7 @@
       startPaste();
     }
     if (computation) {
-      toast(T`Обчислення до покоління ${targetGeneration}…`);
+      toast(T`Computing to generation ${targetGeneration}…`);
       await readPatternOutput(p, computation, placement);
     } else {
       toast(p.name + " · " + p.note);
@@ -2078,7 +2078,7 @@
       category = $("patternCategory").value;
     const categories = [...new Set(window.LIFE_PATTERNS.map((p) => p.type))];
     {
-      $("patternCategory").replaceChildren(new Option(T("Усі категорії"), ""));
+      $("patternCategory").replaceChildren(new Option(T("All categories"), ""));
       for (const type of categories)
         $("patternCategory").append(new Option(I.category(type), type));
       $("patternCategory").value = category;
@@ -2087,18 +2087,18 @@
       (p) => (!category || p.type === category) && I.searchText(p).includes(q),
     );
     $("patternCount").textContent =
-      T("Показано ") +
+      T("Showing ") +
       patterns.length +
-      T(" із ") +
+      T(" of ") +
       window.LIFE_PATTERNS.length +
-      T(" фігур");
+      T(" patterns");
     $("clearPatternSearch").disabled = !q && !category;
     list.replaceChildren();
     if (!patterns.length) {
       const empty = document.createElement("p");
       empty.className = "no-patterns";
       empty.textContent = T(
-        "Нічого не знайдено. Спробуйте іншу назву або категорію.",
+        "No matches. Try another name or category.",
       );
       list.append(empty);
     }
@@ -2200,7 +2200,7 @@
     const bytes = (value) =>
       value === undefined || value === null
         ? "—"
-        : decimal(Number(value) / 1048576, 1) + T(" МіБ");
+        : decimal(Number(value) / 1048576, 1) + T(" MiB");
     const tile = effective.tile_size ?? stats.tile_size;
     const root = $("infoContent");
     root.replaceChildren();
@@ -2209,21 +2209,21 @@
     for (const [value, title, note] of [
       [
         "1",
-        T("Обчислювальний рівень"),
+        T("Computation layer"),
         T(
-          "Рушій обробляє кластери одного розміру. Вкладеної ієрархії обчислювальних кластерів у цій версії немає.",
+          "The engine processes clusters of a single size. This version has one computational layer.",
         ),
       ],
       [
         String(aggregateLevels),
-        T("Рівнів узагальненого вигляду"),
+        T("Overview detail levels"),
         aggregateLevels
-          ? T("Блоки від 2 × 2 до ") +
+          ? T("Blocks from 2 × 2 to ") +
             number(2 ** aggregateLevels) +
             " × " +
             number(2 ** aggregateLevels) +
-            T(". Окремо рівень 0 — точні клітини.")
-          : T("Для поля з однієї клітини достатньо рівня 0 — точного стану."),
+            T(". Level 0 shows exact cells.")
+          : T("A one-cell field needs only level 0: the exact state."),
       ],
     ]) {
       const card = document.createElement("article"),
@@ -2240,61 +2240,61 @@
     const detail = document.createElement("p");
     detail.className = "info-detail";
     detail.textContent =
-      T("Поточний рівень відображення: ") +
+      T("Current display level: ") +
       currentLevel +
       (currentLevel
-        ? T(" · один блок = ") +
+        ? T(" · one block = ") +
           number(scale) +
           " × " +
           number(scale) +
-          T(" клітин.")
-        : T(" · одна клітина = один точний стан.")) +
-      T(" Колір узагальнення не впливає на правила гри.");
+          T(" cells.")
+        : T(" · one cell = one exact state.")) +
+      T(" Overview colors do not affect the rules of Life.");
     root.append(detail);
     const rows = [
       [
-        T("Кластер обчислювального ядра"),
-        tile ? number(tile) + " × " + number(tile) : T("Сервер не підключений"),
+        T("Computation cluster"),
+        tile ? number(tile) + " × " + number(tile) : T("Server disconnected"),
       ],
-      [T("Блок автономного редактора"), T("64 × 64 клітини")],
-      [T("Ефективні потоки CPU"), number(effective.threads ?? stats.threads)],
+      [T("Offline editor tile"), T("64 × 64 cells")],
+      [T("Effective CPU threads"), number(effective.threads ?? stats.threads)],
       [
-        T("Бюджет обчислювального ядра"),
+        T("Native engine memory budget"),
         bytes(effective.memory_bytes ?? stats.memory_budget_bytes),
       ],
-      [T("Пам’ять процесу сервера (RSS)"), bytes(status?.resources?.rss_bytes)],
-      [T("Непорожні кластери"), number(stats.nonempty_tiles)],
-      [T("Кандидати на останньому ході"), number(stats.candidate_tiles)],
-      [T("Обчислено на останньому ході"), number(stats.computed_tiles)],
-      [T("Використано готовий результат кешу"), number(stats.cache_hits)],
-      [T("Пропущено порожніх кластерів"), number(stats.skipped_empty_tiles)],
-      [T("Незмінні на останньому ході"), number(stats.unchanged_tiles)],
-      [T("Історія кешу: повтор через 2 ходи"), number(stats.period2_tiles)],
-      [T("Історія кешу: довші повтори"), number(stats.higher_period_tiles)],
-      [T("Історія кешу: найдовший повтор"), number(stats.max_observed_period)],
-      [T("Кластери під наглядом охоронців"), number(cycles?.watched_clusters)],
+      [T("Server process memory (RSS)"), bytes(status?.resources?.rss_bytes)],
+      [T("Nonempty clusters"), number(stats.nonempty_tiles)],
+      [T("Candidates on last step"), number(stats.candidate_tiles)],
+      [T("Computed on last step"), number(stats.computed_tiles)],
+      [T("Cached results reused"), number(stats.cache_hits)],
+      [T("Empty clusters skipped"), number(stats.skipped_empty_tiles)],
+      [T("Unchanged on last step"), number(stats.unchanged_tiles)],
+      [T("Cache history: repeats after 2 steps"), number(stats.period2_tiles)],
+      [T("Cache history: longer repeats"), number(stats.higher_period_tiles)],
+      [T("Cache history: longest repeat"), number(stats.max_observed_period)],
+      [T("Registered cycle guards"), number(cycles?.watched_clusters)],
       [
-        T("Повторено готових фаз на останньому ході"),
+        T("Stored phases replayed on last step"),
         number(cycles?.last_replays),
       ],
       [
-        T("Повернуто до обчислення на останньому ході"),
+        T("Returned to computation on last step"),
         number(cycles?.last_wakes),
       ],
       [
-        T("Збережено кандидатів для пошуку"),
+        T("Candidates stored for detection"),
         number(cycles?.candidate_captures),
       ],
-      [T("Перевірок кандидатів"), number(cycles?.probes)],
-      [T("Пам’ять пошуку циклів"), bytes(cycles?.bytes)],
-      [T("Ефективний бюджет пошуку"), bytes(cycles?.budget_bytes)],
-      [T("Починати пошук із покоління"), number(cycles?.start_generation)],
-      [T("Найбільший період пошуку"), number(cycles?.max_period)],
+      [T("Candidate checks"), number(cycles?.probes)],
+      [T("Cycle detection memory"), bytes(cycles?.bytes)],
+      [T("Effective detection budget"), bytes(cycles?.budget_bytes)],
+      [T("Start detection at generation"), number(cycles?.start_generation)],
+      [T("Maximum search period"), number(cycles?.max_period)],
       [
-        T("Інтервал нових перевірок"),
+        T("Interval between new checks"),
         cycles?.detection_interval === undefined
           ? "—"
-          : number(cycles.detection_interval) + T(" ходів"),
+          : number(cycles.detection_interval) + T(" steps"),
       ],
     ];
     const table = document.createElement("dl");
@@ -2310,39 +2310,39 @@
     const cycleNote = document.createElement("p");
     cycleNote.className = "info-detail";
     cycleNote.textContent = !cycles?.supported
-      ? T("Охоронці циклів недоступні у підключеному рушії.")
+      ? T("The connected engine does not support cycle guards.")
       : !cycles.enabled
         ? T(
-            "Допоміжний пошук циклів вимкнено. Теплова карта позначає непідтверджені періоди як невідомі.",
+            "Cycle detection is disabled. The heatmap marks unverified periods as unknown.",
           )
         : Number(status.generation) < Number(cycles.start_generation)
-          ? T("Відкладений пошук: до покоління ") +
+          ? T("Delayed detection: until generation ") +
             number(cycles.start_generation) +
-            T(" залишається ") +
+            T(" remaining: ") +
             number(cycles.start_generation - status.generation) +
             T(
-              " ходів. Червоний колір у цей час означає невідомий період, а не доведену хаотичність.",
+              " steps. Red currently indicates an unknown period, not proven chaotic behavior.",
             )
           : T(
-              "Перед повторенням збереженої фази охоронець звіряє точний стан кластера та зовнішній ряд клітин. Невідповідність повертає звичайне обчислення за B3/S23.",
+              "Before replaying a stored phase, the guard checks the exact cluster state and the outer row of cells. A mismatch resumes ordinary B3/S23 computation.",
             );
     root.append(cycleNote);
     const heatNote = document.createElement("p");
     heatNote.className = "dialog-copy";
     heatNote.textContent = T(
-      "Теплова карта показує умовну активність, не ентропію Шеннона. Чинний період 1 — холодний; довші підтверджені цикли тепліші за фіксованою шкалою log₂(period) / 6, до періоду 64. Без чинного підтвердження стан гарячіший. Щільність додає температуру і циклам, і невідомим ділянкам; порожнє завжди чорне. На віддаленні поєднуються середня активність за живими клітинами та максимум, щоб не втратити малі гарячі осередки. Перенормування за поточним кадром немає.",
+      "The heatmap shows qualitative activity rather than Shannon entropy. A currently verified period of 1 is cold; longer verified cycles are warmer on a fixed log₂(period) / 6 scale up to period 64. Without valid verification, a region is hotter. Density raises the temperature of both cyclic and unknown regions; empty areas are always black. Zoomed-out views blend the live-cell-weighted mean with the maximum to preserve small hot spots. The scale is fixed across frames.",
     );
     root.append(heatNote);
     const note = document.createElement("p");
     note.className = "dialog-copy";
     note.textContent = status
-      ? T("Статистика сервера: останнє завершене покоління ") +
+      ? T("Server statistics: last completed generation ") +
         number(status.generation) +
         T(
-          ". Лічильники історії кешу описують старі спостереження й не є кількістю чинних охоронців. Незмінність одного ходу не означає постійного заморожування: зміна сусідів може знову активувати кластер.",
+          ". Cache history counters describe past observations, not the number of current guards. An unchanged step does not imply permanent freezing: changes in neighboring cells can reactivate the cluster.",
         )
       : T(
-          "Сервер не підключений: його фактичні ресурси й статистика недоступні. Рівні відображення розраховані для поточного поля редактора.",
+          "The server is disconnected, so its actual resources and statistics are unavailable. Display levels are calculated for the current editor field.",
         );
     root.append(note);
   }
@@ -2380,12 +2380,12 @@
       const plan = configEditor.plan(),
         summary = document.createElement("p");
       summary.textContent = plan.changes.length
-        ? T("Без перезапуску: ") +
+        ? T("Without restart: ") +
           plan.liveChanges.length +
-          T(". Для наступного запуску: ") +
+          T(". On next startup: ") +
           plan.restartChanges.length +
           "."
-        : T("Усі поля відповідають завантаженій конфігурації.");
+        : T("All fields match the loaded configuration.");
       target.append(summary);
       if (state.activeSettings === "backend")
         showSettingsFeedback(
@@ -2393,32 +2393,32 @@
             (plan.changes.length
               ? summary.textContent +
                 (plan.restartChanges.length
-                  ? T(" Завантажте config.toml для стартових змін.")
+                  ? T(" Download config.toml for startup changes.")
                   : "")
-              : T("Немає змін для застосування.")),
+              : T("No changes to apply.")),
         );
       if (plan.restartChanges.length) {
         const pending = document.createElement("p");
         pending.className = "restart-pending";
         pending.textContent =
-          T("Потребують config.toml і перезапуску: ") +
+          T("Require config.toml and a restart: ") +
           plan.restartChanges.map((c) => c.label).join(", ") +
           T(
-            ". Ці значення залишаться в чернетці після застосування інших змін.",
+            ". These values will stay in the draft after other changes are applied.",
           );
         target.append(pending);
       }
       if (!state.connected) {
         const p = document.createElement("p");
         p.textContent = T(
-          "Автономний режим: підготуйте та завантажте конфігурацію. Застосування до сервера недоступне.",
+          "Offline mode: prepare and download the configuration. Applying it to a server is unavailable.",
         );
         target.append(p);
       }
     } catch {
       const p = document.createElement("p");
       p.textContent = T(
-        "Є неповні або некоректні значення. Перевірте поля перед застосуванням.",
+        "Some values are incomplete or invalid. Check the fields before applying.",
       );
       target.append(p);
       if (state.activeSettings === "backend")
@@ -2439,7 +2439,7 @@
     else configEditor.rebase(config);
     configHasServer = true;
     updateConfigSummary(
-      reset ? T("Чернетку замінено актуальними налаштуваннями сервера.") : "",
+      reset ? T("Draft replaced with the current server settings.") : "",
     );
   }
   function settingsTab(name) {
@@ -2456,8 +2456,8 @@
     else showSettingsFeedback("");
     $("applySettingsButton").textContent =
       name === "backend"
-        ? T("Застосувати без перезапуску")
-        : T("Зберегти вигляд");
+        ? T("Apply without restart")
+        : T("Save display settings");
   }
   $("settingsButton").onclick = safe(async () => {
     const f = $("settingsForm");
@@ -2491,14 +2491,14 @@
     state.status = await api("/status");
     setConnection(true);
     await fetchServerConfig();
-    toast(T("Доступ до сервера підтверджено."));
+    toast(T("Server access confirmed."));
   });
   $("reloadConfig").onclick = safe(async () => {
     if (state.connected) await fetchServerConfig(true);
     else {
       ensureConfigEditor().load(window.LifeConfig.DEFAULTS);
       updateConfigSummary(
-        T("Відновлено типові налаштування для автономної підготовки."),
+        T("Defaults restored for offline configuration."),
       );
     }
   });
@@ -2507,7 +2507,7 @@
     const { config, errors } = ensureConfigEditor().validate({ focus: true });
     if (errors.length) {
       updateConfigSummary(
-        T("Виправте позначені поля, щоб отримати придатний для запуску файл."),
+        T("Correct the highlighted fields to export a valid startup file."),
       );
       throw Error(errors[0].message);
     }
@@ -2518,7 +2518,7 @@
     );
     updateConfigSummary(
       T(
-        "Повний config.toml завантажено. Конфіг не містить живих клітин: збережіть стан окремо. Запустіть сервер із цим файлом, щоб застосувати стартові налаштування.",
+        "Full config.toml downloaded. The config does not contain live cells: save the state separately. Start the server with this file to apply startup settings.",
       ),
     );
   });
@@ -2529,7 +2529,7 @@
       if (!state.connected)
         throw Error(
           T(
-            "Сервер не підключений. Завантажте config.toml для наступного запуску.",
+            "Server disconnected. Download config.toml for the next startup.",
           ),
         );
       const editor = ensureConfigEditor(),
@@ -2547,7 +2547,7 @@
       );
       if (blocking.length) {
         editor.validate({ focus: true });
-        updateConfigSummary(T("Не застосовано: виправте позначені значення."));
+        updateConfigSummary(T("Not applied: correct the highlighted values."));
         throw Error(blocking[0].message);
       }
       const plan = editor.plan();
@@ -2555,9 +2555,9 @@
         updateConfigSummary(
           plan.restartChanges.length
             ? T(
-                "Ці зміни застосовуються лише під час запуску. Завантажте повний config.toml; чернетку збережено.",
+                "These changes apply only at startup. Download the full config.toml; the draft has been preserved.",
               )
-            : T("Немає змін для застосування."),
+            : T("No changes to apply."),
         );
         return;
       }
@@ -2590,21 +2590,21 @@
         } catch {}
       }
       updateConfigSummary(
-        T("Застосовано без перезапуску: ") +
+        T("Applied without restart: ") +
           plan.liveChanges.length +
           ". " +
           (plan.restartChanges.length
             ? T(
-                "Стартові зміни залишилися в чернетці — завантажте config.toml.",
+                "Startup changes remain in the draft — download config.toml.",
               )
-            : T("Для постійного збереження також завантажте config.toml.")) +
+            : T("Also download config.toml to persist these settings.")) +
           (errors.length
             ? T(
-                " Перед експортом виправте область рандомізації, яка виходить за поточне поле.",
+                " Before exporting, correct the randomization area that exceeds the current field.",
               )
             : ""),
       );
-      toast(T("Поточні налаштування сервера оновлено."));
+      toast(T("Current server settings updated."));
     } else {
       const ranges = {
         levels: [2, 256, true],
@@ -2630,7 +2630,7 @@
         ) {
           input.focus();
           throw Error(
-            T("Перевірте значення «") +
+            T("Check the value of “") +
               input.closest("label").childNodes[0].textContent.trim() +
               "».",
           );
@@ -2654,7 +2654,7 @@
         localStorage.setItem("life-display-settings", JSON.stringify(settings));
       } catch {}
       scheduleRender();
-      toast(T("Налаштування відображення збережено."));
+      toast(T("Display settings saved."));
       closeDialog($("settingsDialog"));
     }
   });
@@ -2763,20 +2763,20 @@
     if (configEditor) updateConfigSummary();
     $("applySettingsButton").textContent =
       state.activeSettings === "backend"
-        ? T("Застосувати без перезапуску")
-        : T("Зберегти вигляд");
+        ? T("Apply without restart")
+        : T("Save display settings");
     if ($("randomDialog").open) updateRandomRoute();
     const speedIndex = Number($("speed").value);
     $("speedValue").textContent =
       speedIndex === 10
-        ? T("Максимальна")
+        ? T("Maximum")
         : fmt([1, 2, 5, 10, 20, 50, 100, 200, 500, 1000][speedIndex]) +
-          T(" ходів/с");
+          T(" steps/s");
     if (state.cursor)
       $("cursorPosition").textContent =
-        T("Курсор ") + (state.cursor.x + 1) + "." + (state.cursor.y + 1);
+        T("Cursor ") + (state.cursor.x + 1) + "." + (state.cursor.y + 1);
     setStatus(
-      state.mode === "editor" ? T("Автономний редактор") : T("Монітор"),
+      state.mode === "editor" ? T("Offline editor") : T("Monitor"),
     );
     scheduleRender();
   }

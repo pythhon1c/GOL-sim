@@ -34,7 +34,7 @@ function createLifeCore() {
       h > MAX_DIM
     )
       throw Error(
-        T("Розміри мають бути цілими числами від 1 до 1 000 000 000."),
+        T("Dimensions must be integers from 1 to 1,000,000,000."),
       );
   }
   class SparseGrid {
@@ -199,17 +199,17 @@ function createLifeCore() {
         if (!m)
           throw Error(
             T(
-              "Некоректний RLE-заголовок. Очікується x = …, y = …, rule = B3/S23.",
+              "Invalid RLE header. Expected x = …, y = …, rule = B3/S23.",
             ),
           );
         const rule = (m[3] || "B3/S23").replace(/\s/g, "").toUpperCase();
         if (!["B3/S23", "23/3"].includes(rule))
-          throw Error(T("Дозволені тільки класичні правила B3/S23."));
+          throw Error(T("Only the classic B3/S23 rules are supported."));
         header = { width: Number(m[1]), height: Number(m[2]) };
         dimensions(Math.max(1, header.width), Math.max(1, header.height));
       } else body.push(l);
     }
-    if (!header) throw Error(T("Порожній RLE-файл."));
+    if (!header) throw Error(T("Empty RLE file."));
     const g = new SparseGrid(
       Math.max(1, header.width),
       Math.max(1, header.height),
@@ -223,40 +223,40 @@ function createLifeCore() {
       const c = s[i];
       if (/[0-9]/.test(c)) {
         n += c;
-        if (n.length > 10) throw Error(T("Завеликий RLE-повтор."));
+        if (n.length > 10) throw Error(T("RLE run length is too large."));
         continue;
       }
       const count = n ? Number(n) : 1;
       n = "";
       if (!Number.isSafeInteger(count) || count < 1)
-        throw Error(T("Некоректна довжина RLE-серії."));
+        throw Error(T("Invalid RLE run length."));
       if (c === "!") {
         ended = true;
         if (s.slice(i + 1).trim())
-          throw Error(T("Зайві дані після кінця RLE."));
+          throw Error(T("Unexpected data after the end of RLE."));
         break;
       }
       if (c === "$") {
         y += count;
         x = 0;
         if (y > header.height)
-          throw Error(T("RLE виходить за вказану висоту."));
+          throw Error(T("RLE exceeds the specified height."));
       } else if (c === "b" || c === "o") {
         if (x + count > header.width || y >= header.height)
-          throw Error(T("RLE виходить за розміри фігури."));
+          throw Error(T("RLE exceeds the pattern dimensions."));
         if (c === "o") {
           if (g.population + count > maxLive)
             throw Error(
               T(
-                "Файл перевищує ліміт 5 млн живих клітин автономного редактора. Завантажте його через сервер.",
+                "The file exceeds the offline editor's 5-million-live-cell limit. Load it through the server.",
               ),
             );
           for (let j = 0; j < count; j++) g.set(x + j, y, 1);
         }
         x += count;
-      } else throw Error(T("Непідтримуваний символ RLE: ") + c);
+      } else throw Error(T("Unsupported RLE character: ") + c);
     }
-    if (!ended || n) throw Error(T("RLE має завершуватися знаком !."));
+    if (!ended || n) throw Error(T("RLE must end with !."));
     return {
       grid: g,
       width: header.width,
@@ -267,17 +267,17 @@ function createLifeCore() {
   function parseStateJSON(text) {
     const d = typeof text === "string" ? JSON.parse(text) : text;
     if (d.rule && d.rule !== "B3/S23")
-      throw Error(T("Дозволені лише правила B3/S23."));
+      throw Error(T("Only B3/S23 is supported."));
     if (d.version !== undefined && d.version !== 1)
-      throw Error(T("Невідома версія формату."));
+      throw Error(T("Unknown format version."));
     const base = d.coordinate_base === undefined ? 0 : d.coordinate_base;
     if (base !== 0 && base !== 1)
-      throw Error(T("coordinate_base повинен бути 0 або 1."));
+      throw Error(T("coordinate_base must be 0 or 1."));
     const g = new SparseGrid(d.width, d.height, d.wrap);
     if (!Array.isArray(d.cells))
-      throw Error(T("JSON має містити масив cells."));
+      throw Error(T("JSON must contain a cells array."));
     if (d.cells.length > 5000000)
-      throw Error(T("Забагато клітин для автономного імпорту."));
+      throw Error(T("Too many cells for offline import."));
     for (const cell of d.cells) {
       if (
         !Array.isArray(cell) ||
@@ -285,10 +285,10 @@ function createLifeCore() {
         !Number.isInteger(cell[0]) ||
         !Number.isInteger(cell[1])
       )
-        throw Error(T("Некоректні координати клітини."));
+        throw Error(T("Invalid cell coordinates."));
       const x = cell[0] - base,
         y = cell[1] - base;
-      if (!g.inside(x, y)) throw Error(T("Клітина виходить за межі поля."));
+      if (!g.inside(x, y)) throw Error(T("Cell coordinates are outside the field."));
       g.set(x, y, 1);
     }
     return { grid: g, generation: Number(d.generation) || 0 };
@@ -361,11 +361,11 @@ function createLifeCore() {
   }
   function aggregate(g, rect, scale = 1) {
     if (scale < 1 || !Number.isInteger(scale) || Math.log2(scale) % 1)
-      throw Error(T("scale має бути степенем 2."));
+      throw Error(T("scale must be a power of 2."));
     const columns = Math.ceil(rect.width / scale),
       rows = Math.ceil(rect.height / scale);
     if (columns * rows > 2097152)
-      throw Error(T("Завелике вікно відображення."));
+      throw Error(T("Viewport is too large."));
     const counts = new Float64Array(columns * rows);
     if (scale >= 64 && rect.x % scale === 0 && rect.y % scale === 0) {
       for (const t of g.tiles.values()) {
@@ -470,17 +470,17 @@ function createLifeCore() {
   }
   function randomSeed(seed) {
     if (!["string", "number", "bigint"].includes(typeof seed))
-      throw Error(T("Seed має бути цілим числом або десятковим текстом."));
+      throw Error(T("Seed must be an integer or a decimal string."));
     if (typeof seed === "number" && (!Number.isSafeInteger(seed) || seed < 0))
       throw Error(
         T(
-          "Seed потрібно передавати точним цілим числом або десятковим текстом.",
+          "Provide seed as an exact integer or a decimal string.",
         ),
       );
     const text = String(seed).trim();
     if (!/^[0-9]{1,20}$/.test(text) || BigInt(text) > 0xffffffffffffffffn)
       throw Error(
-        T("Seed має бути цілим числом від 0 до 18446744073709551615."),
+        T("Seed must be an integer from 0 to 18446744073709551615."),
       );
     return BigInt(text).toString();
   }
@@ -539,7 +539,7 @@ function createLifeCore() {
       !Number.isFinite(density) ||
       !(density >= 0.01 && density <= 0.99)
     )
-      throw Error(T("Щільність має бути 1–99%."));
+      throw Error(T("Density must be 1–99%."));
     if (
       !rect ||
       ![rect.x, rect.y, rect.width, rect.height].every(Number.isSafeInteger) ||
@@ -550,10 +550,10 @@ function createLifeCore() {
       rect.x + rect.width > width ||
       rect.y + rect.height > height
     )
-      throw Error(T("Прямокутник рандомізації має бути всередині поля."));
+      throw Error(T("The randomization rectangle must fit inside the field."));
     if (randomRoute("editor", width, height) === "server")
       throw Error(
-        T("Рандомізація поля понад 4 194 304 клітини виконується на сервері."),
+        T("Fields larger than 4,194,304 cells are randomized on the server."),
       );
     const g = new SparseGrid(width, height);
     const rand = coordinateRandom(seed);
@@ -579,7 +579,7 @@ function createLifeCore() {
         width,
         height,
       };
-    throw Error(T("Невідоме перетворення."));
+    throw Error(T("Unknown transformation."));
   }
   function shade(count, area, levels = 32, bias = 0.12, gain = 2.5) {
     if (count <= 0) return 0;

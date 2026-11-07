@@ -44,21 +44,21 @@ parity_clock = frozenset({(29,45),(30,43),(30,44),(31,44),(31,45)})
 parity_inverse = frozenset({(59,12),(59,13),(60,11),(60,13),(61,13)})
 GLIDER='glider'; BLOCK='block'
 demo = [
-    gate('nor','NOR','Два вхідні глайдери можуть по черзі загасити один тактовий імпульс.',
+    gate('nor','NOR','Either input glider can extinguish the same clock pulse.',
          clock,first,second, checkpoint(96,at(clock,24,24),GLIDER,(1,1)), '1000'),
-    gate('or','OR','Другий тактовий імпульс інвертує спільний вихід NOR.',
+    gate('or','OR','A second clock pulse inverts the shared NOR output.',
          clock|inverse,first,second, checkpoint(128,at(inverse,-32,-32),GLIDER,(-1,-1)), '0111'),
-    gate('nand','NAND','Тільки два одночасні входи записують блок AND, який перехоплює відкладений глайдер читання.',
+    gate('nand','NAND','Two simultaneous inputs form an AND block that intercepts the delayed readout glider.',
          probe,write,data, checkpoint(120,at(probe,30,-30),GLIDER,(1,-1)), '1110'),
-    gate('xnor','XNOR','Один вхід гасить тактовий глайдер. Два входи взаємно гасяться і пропускають його.',
+    gate('xnor','XNOR','One input extinguishes the clock glider. Two inputs annihilate each other and let it pass.',
          parity_clock,left,right, checkpoint(80,at(parity_clock,20,-20),GLIDER,(1,-1)), '1001'),
-    gate('xor','XOR','Другий тактовий глайдер інвертує XNOR та дає спільний вихід для 01 і 10.',
+    gate('xor','XOR','A second clock glider inverts XNOR, giving the same output for inputs 01 and 10.',
          parity_clock|parity_inverse,left,right, checkpoint(112,at(parity_inverse,-28,28),GLIDER,(-1,1)), '0110'),
-    gate('inhibit','Інгібітор · A І НЕ B','Глайдер A проходить до виходу, тільки коли глайдер B його не загасив.',
+    gate('inhibit','Inhibitor · A AND NOT B','Glider A reaches the output only if glider B does not extinguish it.',
          frozenset(),clock,first, checkpoint(96,at(clock,24,24),GLIDER,(1,1)), '0010'),
-    gate('implies','Імплікація · A ⇒ B','Тактовий глайдер інвертує вихід інгібітора A І НЕ B.',
+    gate('implies','Implication · A ⇒ B','A clock glider inverts the output of the A AND NOT B inhibitor.',
          second,clock,first, checkpoint(120,at(second,-30,-30),GLIDER,(-1,-1)), '1101'),
-    gate('block-memory','Пам’ять на 1 біт · запис і скидання','На ході 60 у комірці зберігається D. Відкладений глайдер R=1 очищає її; R=0 зберігає запис.',
+    gate('block-memory','One-bit memory · write and reset','At generation 60 the memory stores D. A delayed R=1 glider clears it. R=0 keeps the stored bit.',
          write,data,reset, checkpoint(144,block,BLOCK), '0010', ('D','R'),
          ((checkpoint(60,block,BLOCK), '0011'),)),
 ]
@@ -80,26 +80,27 @@ def main():
             cells=d['clocks'] | (d['input_cells'][0] if a else frozenset()) | (d['input_cells'][1] if b else frozenset())
             outputs=[int(table[n]) for _,table in d['checks']]
             read=d['checks'][-1][0]; out=outputs[-1]; count=out*len(read['one_cells'])
-            (HERE/(base+'.json')).write_text(''.join(json_chunks(SIZE,SIZE,False,0,sorted(cells))),encoding='utf-8')
+            (HERE/(base+'.json')).write_text(''.join(json_chunks(SIZE,SIZE,False,0,sorted(cells))),encoding='utf-8',newline='\n')
             rle=rle_text(SIZE,SIZE,False,0,cells)
-            (HERE/(base+'.rle')).write_text(f"#N {d['group']} inputs={code}\n#C B3/S23, single shot; sample generation {read['generation']}; details in extended-truth-tables.json.\n"+rle,encoding='utf-8')
+            # These RLE assets are byte-preserved by Git and were published with CRLF.
+            (HERE/(base+'.rle')).write_text(f"#N {d['group']} inputs={code}\n#C B3/S23, single shot; sample generation {read['generation']}; details in extended-truth-tables.json.\n"+rle,encoding='utf-8',newline='\r\n')
             record['cases'].append(dict(inputs=[a,b], outputs=outputs, state=base+'.json', rle=base+'.rle'))
             roi=read['output_roi']; x,y=roi['x']+1,roi['y']+1
             region=f"{x}.{y}–{x+roi['width']-1}.{y+roi['height']-1}"
             named=f"{d['pins'][0]}={a}, {d['pins'][1]}={b}"
-            note=f"{d['description']} Одноразова схема: {named}. Хід {read['generation']}, область {region}: вихід {out} ({count} клітин)."
+            note=f"{d['description']} With {named}, the output at generation {read['generation']} is {out} ({count} live cells in {region})."
             audit=dict(kind='logic',generation=read['generation'],output_roi=roi,expected_output=out,
                        expected_population=count,signal=read['signal'],coordinate_base=0)
             if len(outputs)>1:
                 audit['checkpoints']=[dict(generation=c['generation'],output_roi=c['output_roi'],expected_output=o,expected_population=o*len(c['one_cells'])) for (c,_),o in zip(d['checks'],outputs)]
             catalog.append(dict(id=f"logic-{d['group']}-{code}",group='logic-'+d['group'],inputs=[a,b],pins=d['pins'],
                                 group_name=d['label'],name=f"{d['label']} · {named} → {out}",
-                                type='ЛОГІЧНА СХЕМА',note=note,rle=rle,width=SIZE,height=SIZE,population=len(cells),
+                                type='LOGIC CIRCUIT',note=note,rle=rle,width=SIZE,height=SIZE,population=len(cells),
                                 provenance='original',source='examples/logic/'+base+'.rle',verification=audit))
         manifest['demos'].append(record)
-    (HERE/'extended-truth-tables.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    (HERE/'extended-truth-tables.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n',encoding='utf-8',newline='\n')
     run=ROOT/'.run'; run.mkdir(exist_ok=True)
-    (run/'logic-catalog-additions.json').write_text(json.dumps(catalog,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    (run/'logic-catalog-additions.json').write_text(json.dumps(catalog,ensure_ascii=False,indent=2)+'\n',encoding='utf-8',newline='\n')
 
 if __name__=='__main__':
     main()

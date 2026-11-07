@@ -41,12 +41,12 @@ test('catalog has the exact reviewed profile and exposes the same entries throug
   assert.deepEqual(patterns,JSON.parse(fs.readFileSync(path.join(__dirname,'../web/patterns.json'),'utf8')));
   for (const id of ['not-input-zero','not-input-one','and-latch','gosper','pulsar'])
     assert(patterns.some(p=>p.id===id),id);
-  assert(patterns.filter(p=>p.type==='СТАБІЛЬНА ФІГУРА').length>=10);
-  assert(patterns.filter(p=>p.type==='ОСЦИЛЯТОР').length>=14);
-  assert(patterns.filter(p=>p.type==='КОСМІЧНИЙ КОРАБЕЛЬ').length>=7);
-  assert(patterns.filter(p=>p.type==='ДОВГОЖИТЕЛЬ').length>=8);
+  assert(patterns.filter(p=>p.type==='STILL LIFE').length>=10);
+  assert(patterns.filter(p=>p.type==='OSCILLATOR').length>=14);
+  assert(patterns.filter(p=>p.type==='SPACESHIP').length>=7);
+  assert(patterns.filter(p=>p.type==='LONG-LIVED PATTERN').length>=8);
   assert.equal(patterns.filter(p=>p.asset==='clock').length,publicProfile ? 0 : 1);
-  const quick = patterns.filter(p=>p.type==='ШВИДКА МАШИНА');
+  const quick = patterns.filter(p=>p.type==='QUICK DEMO MACHINE');
   assert.equal(quick.length,publicProfile ? 2 : 10);
   if (publicProfile) {
     const policy = require('../publication-policy.json');

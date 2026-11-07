@@ -4,10 +4,10 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#0c1115" />
-    <title data-i18n-text='[[0,"GOL sim / Великі світи, прості правила"]]'>
+    <title data-i18n-text='[[0,"GOL sim / Large worlds, simple rules"]]'>
       GOL sim / Large worlds, simple rules
     </title>
-    <link rel="stylesheet" href="style.css?v=i18n1" />
+    <link rel="stylesheet" href="style.css?v=i18n2" />
   </head>
   <body>
     <header class="topbar">
@@ -15,28 +15,28 @@
         ><span class="brand-mark"><i></i><i></i><i></i><i></i><i></i></span
         ><strong>GOL<span> </span>sim</strong></a
       >
-      <nav class="modes" aria-label="Mode" data-i18n-aria-label="Режим">
+      <nav class="modes" aria-label="Mode" data-i18n-aria-label="Mode">
         <button
           id="monitorMode"
           class="active"
-          data-i18n-text='[[0,"Монітор"]]'
+          data-i18n-text='[[0,"Monitor"]]'
         >
           Monitor<span class="mode-dot"></span></button
-        ><button id="editorMode" data-i18n-text='[[0,"Конфігуратор"]]'>
+        ><button id="editorMode" data-i18n-text='[[0,"Editor"]]'>
           Editor
         </button>
       </nav>
       <div class="top-right">
         <label class="language-control"
-          ><span class="sr-only" data-i18n-text='[[0,"Мова"]]'>Language</span
+          ><span class="sr-only" data-i18n-text='[[0,"Language"]]'>Language</span
           ><select
             id="languageSelect"
             aria-label="Language"
-            data-i18n-aria-label="Мова"
+            data-i18n-aria-label="Language"
           >
             <option value="en">English</option>
-            <option value="ru">Русский</option>
-            <option value="uk">Українська</option>
+            <option value="ru" lang="ru" data-language-name="Russian">Russian</option>
+            <option value="uk" lang="uk" data-language-name="Ukrainian">Ukrainian</option>
           </select></label
         >
         <button
@@ -44,23 +44,23 @@
           class="icon-button"
           aria-label="Additional information"
           title="Additional information"
-          data-i18n-aria-label="Додаткова інформація"
-          data-i18n-title="Додаткова інформація"
+          data-i18n-aria-label="Additional information"
+          data-i18n-title="Additional information"
         >
           ⓘ
         </button>
         <span
           id="connection"
           class="connection"
-          data-i18n-text='[[1,"Підключення…"]]'
+          data-i18n-text='[[1,"Connecting…"]]'
           ><i></i>Connecting…</span
         ><button
           id="helpButton"
           class="icon-button"
           aria-label="Help"
           title="Help and keyboard shortcuts"
-          data-i18n-aria-label="Довідка"
-          data-i18n-title="Довідка та клавіші"
+          data-i18n-aria-label="Help"
+          data-i18n-title="Help and keyboard shortcuts"
         >
           ?</button
         ><button
@@ -68,8 +68,8 @@
           class="icon-button"
           aria-label="Settings"
           title="Settings"
-          data-i18n-aria-label="Налаштування"
-          data-i18n-title="Налаштування"
+          data-i18n-aria-label="Settings"
+          data-i18n-title="Settings"
         >
           ⚙
         </button>
@@ -81,28 +81,28 @@
           <div class="eyebrow">CONWAY’S GAME OF LIFE</div>
           <h1
             id="modeTitle"
-            data-i18n-text='[[0,"Спостерігайте"],[2,"за еволюцією."]]'
+            data-i18n-text='[[0,"Watch"],[2,"life evolve."]]'
           >
             Watch<br />life evolve.
           </h1>
           <p
             id="modeDescription"
-            data-i18n-text='[[0,"Великі світи. Прості правила."],[2,"Кожне покоління — точний розрахунок."]]'
+            data-i18n-text='[[0,"Large worlds. Simple rules."],[2,"Every generation computed exactly."]]'
           >
             Large worlds. Simple rules.<br />Every generation computed exactly.
           </p>
           <div class="rule-badge">
             <span>B3 / S23</span
-            ><span data-i18n-text='[[0,"Класичні правила"]]'
+            ><span data-i18n-text='[[0,"Classic rules"]]'
               >Classic rules</span
             >
           </div>
         </section>
         <section class="control-section">
           <div class="section-label">
-            <span id="controlHeading" data-i18n-text='[[0,"КЕРУВАННЯ"]]'
+            <span id="controlHeading" data-i18n-text='[[0,"CONTROLS"]]'
               >CONTROLS</span
-            ><span id="runLabel" class="pill" data-i18n-text='[[0,"Пауза"]]'
+            ><span id="runLabel" class="pill" data-i18n-text='[[0,"Paused"]]'
               >Paused</span
             >
           </div>
@@ -111,7 +111,7 @@
               <button
                 id="runButton"
                 class="primary"
-                data-i18n-text='[[2,"Запустити"]]'
+                data-i18n-text='[[2,"Run"]]'
               >
                 <span>▶</span> Run</button
               ><button
@@ -119,26 +119,26 @@
                 class="square"
                 title="One step"
                 aria-label="Next generation"
-                data-i18n-title="Один хід"
-                data-i18n-aria-label="Наступне покоління"
+                data-i18n-title="One step"
+                data-i18n-aria-label="Next generation"
               >
                 ▷│
               </button>
             </div>
             <div class="slider-heading">
-              <label for="speed" data-i18n-text='[[0,"Швидкість"]]'>Speed</label
-              ><span id="speedValue" data-i18n-text='[[0,"Максимальна"]]'
+              <label for="speed" data-i18n-text='[[0,"Speed"]]'>Speed</label
+              ><span id="speedValue" data-i18n-text='[[0,"Maximum"]]'
                 >Maximum</span
               >
             </div>
             <input id="speed" type="range" min="0" max="10" value="10" />
             <div class="range-caption">
-              <span data-i18n-text='[[0,"1 хід/с"]]'>1 step/s</span
+              <span data-i18n-text='[[0,"1 step/s"]]'>1 step/s</span
               ><span>MAX</span>
             </div>
             <div class="step-progress">
               <div class="progress-heading">
-                <span data-i18n-text='[[0,"Наступне покоління"]]'
+                <span data-i18n-text='[[0,"Next generation"]]'
                   >Next generation</span
                 ><span id="stepPercent">—</span>
               </div>
@@ -146,7 +146,7 @@
               <div
                 id="eta"
                 class="eta"
-                data-i18n-text='[[0,"Симуляція призупинена"]]'
+                data-i18n-text='[[0,"Simulation paused"]]'
               >
                 Simulation paused
               </div>
@@ -157,59 +157,59 @@
               class="tools"
               role="group"
               aria-label="Tools"
-              data-i18n-aria-label="Інструменти"
+              data-i18n-aria-label="Tools"
             >
               <button
                 data-tool="draw"
                 class="active"
                 title="Pencil (B)"
-                data-i18n-title="Олівець (B)"
+                data-i18n-title="Pencil (B)"
               >
-                ✎<span data-i18n-text='[[0,"Олівець"]]'>Pencil</span></button
+                ✎<span data-i18n-text='[[0,"Pencil"]]'>Pencil</span></button
               ><button
                 data-tool="erase"
                 title="Eraser (E)"
-                data-i18n-title="Гумка (E)"
+                data-i18n-title="Eraser (E)"
               >
-                ▱<span data-i18n-text='[[0,"Гумка"]]'>Eraser</span></button
+                ▱<span data-i18n-text='[[0,"Eraser"]]'>Eraser</span></button
               ><button
                 data-tool="pan"
                 title="Hand (H)"
-                data-i18n-title="Рука (H)"
+                data-i18n-title="Hand (H)"
               >
-                ✥<span data-i18n-text='[[0,"Рух"]]'>Pan</span></button
+                ✥<span data-i18n-text='[[0,"Pan"]]'>Pan</span></button
               ><button
                 data-tool="select"
                 title="Selection (S)"
-                data-i18n-title="Виділення (S)"
+                data-i18n-title="Selection (S)"
               >
-                ▧<span data-i18n-text='[[0,"Область"]]'>Area</span></button
+                ▧<span data-i18n-text='[[0,"Area"]]'>Area</span></button
               ><button
                 data-tool="line"
                 title="Line (L)"
-                data-i18n-title="Лінія (L)"
+                data-i18n-title="Line (L)"
               >
-                ╱<span data-i18n-text='[[0,"Лінія"]]'>Line</span></button
+                ╱<span data-i18n-text='[[0,"Line"]]'>Line</span></button
               ><button
                 data-tool="rect"
                 title="Rectangle (R)"
-                data-i18n-title="Прямокутник (R)"
+                data-i18n-title="Rectangle (R)"
               >
-                □<span data-i18n-text='[[0,"Рамка"]]'>Outline</span>
+                □<span data-i18n-text='[[0,"Outline"]]'>Outline</span>
               </button>
             </div>
             <div class="compact-row">
               <button
                 id="undoButton"
                 title="Undo Ctrl+Z"
-                data-i18n-title="Скасувати Ctrl+Z"
-                data-i18n-text='[[0,"↶ Скасувати"]]'
+                data-i18n-title="Undo Ctrl+Z"
+                data-i18n-text='[[0,"↶ Undo"]]'
               >
                 ↶ Undo</button
               ><button
                 id="redoButton"
                 title="Redo Ctrl+Y"
-                data-i18n-title="Повторити Ctrl+Y"
+                data-i18n-title="Redo Ctrl+Y"
               >
                 ↷
               </button>
@@ -218,22 +218,22 @@
               <button
                 id="copyButton"
                 title="Copy Ctrl+C"
-                data-i18n-title="Копіювати Ctrl+C"
-                data-i18n-text='[[0,"Копія"]]'
+                data-i18n-title="Copy Ctrl+C"
+                data-i18n-text='[[0,"Copy"]]'
               >
                 Copy</button
               ><button
                 id="cutButton"
                 title="Cut Ctrl+X"
-                data-i18n-title="Вирізати Ctrl+X"
-                data-i18n-text='[[0,"Вирізати"]]'
+                data-i18n-title="Cut Ctrl+X"
+                data-i18n-text='[[0,"Cut"]]'
               >
                 Cut</button
               ><button
                 id="pasteButton"
                 title="Paste Ctrl+V"
-                data-i18n-title="Вставити Ctrl+V"
-                data-i18n-text='[[0,"Вставити"]]'
+                data-i18n-title="Paste Ctrl+V"
+                data-i18n-text='[[0,"Paste"]]'
               >
                 Paste
               </button>
@@ -242,20 +242,20 @@
               <button
                 id="rotateButton"
                 title="Rotate paste or selection by 90°"
-                data-i18n-title="Повернути вставку або виділення на 90°"
+                data-i18n-title="Rotate paste or selection by 90°"
               >
                 ↻ 90°</button
               ><button
                 id="flipButton"
                 title="Flip horizontally"
-                data-i18n-title="Віддзеркалити по горизонталі"
+                data-i18n-title="Flip horizontally"
               >
                 ↔</button
               ><button
                 id="deleteButton"
                 title="Delete area · Delete"
-                data-i18n-title="Видалити область Delete"
-                data-i18n-text='[[0,"Видалити"]]'
+                data-i18n-title="Delete area · Delete"
+                data-i18n-text='[[0,"Delete"]]'
               >
                 Delete
               </button>
@@ -263,7 +263,7 @@
             <div
               class="editor-note"
               id="toolHint"
-              data-i18n-text='[[0,"Малюйте лівою кнопкою. Пробіл + рух — переміщення."]]'
+              data-i18n-text='[[0,"Draw with the left button. Hold Space and drag to pan."]]'
             >
               Draw with the left button. Hold Space and drag to pan.
             </div>
@@ -271,30 +271,30 @@
         </section>
         <section class="control-section">
           <div class="section-label">
-            <span data-i18n-text='[[0,"ПОЧАТКОВИЙ СТАН"]]'>INITIAL STATE</span
+            <span data-i18n-text='[[0,"INITIAL STATE"]]'>INITIAL STATE</span
             ><span class="tiny-label">01</span>
           </div>
           <div class="compact-row">
-            <button id="newButton" data-i18n-text='[[0,"＋ Нове поле"]]'>
+            <button id="newButton" data-i18n-text='[[0,"＋ New field"]]'>
               ＋ New field</button
             ><button
               id="randomButton"
               title="Random fill"
-              data-i18n-title="Випадкове заповнення"
-              data-i18n-text='[[0,"⚄ Рандом"]]'
+              data-i18n-title="Random fill"
+              data-i18n-text='[[0,"⚄ Random"]]'
             >
               ⚄ Random
             </button>
           </div>
           <button id="patternsButton" class="wide-button">
-            <span data-i18n-text='[[0,"▦ Бібліотека фігур"]]'
+            <span data-i18n-text='[[0,"▦ Pattern library"]]'
               >▦ Pattern library</span
             ><span>↗</span>
           </button>
           <div class="compact-row">
-            <button id="importButton" data-i18n-text='[[0,"↓ Імпорт"]]'>
+            <button id="importButton" data-i18n-text='[[0,"↓ Import"]]'>
               ↓ Import</button
-            ><button id="exportButton" data-i18n-text='[[0,"↑ Експорт"]]'>
+            ><button id="exportButton" data-i18n-text='[[0,"↑ Export"]]'>
               ↑ Export
             </button>
           </div>
@@ -304,14 +304,14 @@
             accept=".rle,.cells,.lif,.json,.life"
             hidden
           /><button id="sendButton" class="wide-button" hidden>
-            <span data-i18n-text='[[0,"Передати в симуляцію"]]'
+            <span data-i18n-text='[[0,"Send to simulation"]]'
               >Send to simulation</span
             ><span>→</span>
           </button>
         </section>
         <section class="control-section navigation-section">
           <div class="section-label">
-            <span data-i18n-text='[[0,"НАВІГАЦІЯ"]]'>NAVIGATION</span
+            <span data-i18n-text='[[0,"NAVIGATION"]]'>NAVIGATION</span
             ><span class="tiny-label">X.Y</span>
           </div>
           <form id="gotoForm" class="coordinate-form">
@@ -321,31 +321,31 @@
               placeholder="1666.1888"
               aria-label="Coordinates column.row"
               pattern="[0-9]+\.[0-9]+"
-              data-i18n-aria-label="Координати стовпець.рядок"
+              data-i18n-aria-label="Coordinates column.row"
             /><button
               title="Go to coordinates"
-              data-i18n-title="Перейти до координат"
+              data-i18n-title="Go to coordinates"
             >
               ↗
             </button>
           </form>
           <button id="fitButton" class="wide-button">
-            <span data-i18n-text='[[0,"⛶ Показати все поле"]]'
+            <span data-i18n-text='[[0,"⛶ Fit entire field"]]'
               >⛶ Fit entire field</span
             ><span>F</span>
           </button>
           <div class="boundary-row">
-            <span data-i18n-text='[[0,"Межі поля"]]'>Field boundaries</span
-            ><span id="boundaryLabel" data-i18n-text='[[0,"Замкнені"]]'
+            <span data-i18n-text='[[0,"Field boundaries"]]'>Field boundaries</span
+            ><span id="boundaryLabel" data-i18n-text='[[0,"Closed"]]'
               >Closed</span
             >
           </div>
         </section>
         <div class="sidebar-footer">
           <span class="integrity-dot"></span>
-          <div data-i18n-text='[[0,"Точність без компромісів"]]'>
+          <div data-i18n-text='[[0,"Exact at every scale"]]'>
             Exact at every scale<small
-              data-i18n-text='[[0,"8 сусідів · синхронні покоління"]]'
+              data-i18n-text='[[0,"8 neighbors · simultaneous generations"]]'
               >8 neighbors · simultaneous generations</small
             >
           </div>
@@ -354,25 +354,25 @@
       <section
         class="stage"
         aria-label="Simulation field"
-        data-i18n-aria-label="Поле симуляції"
+        data-i18n-aria-label="Simulation field"
       >
         <div class="statsbar">
           <div>
-            <span data-i18n-text='[[0,"ПОКОЛІННЯ"]]'>GENERATION</span
+            <span data-i18n-text='[[0,"GENERATION"]]'>GENERATION</span
             ><strong id="generation">0</strong>
           </div>
           <div>
-            <span data-i18n-text='[[0,"ЖИВІ КЛІТИНИ"]]'>LIVE CELLS</span
+            <span data-i18n-text='[[0,"LIVE CELLS"]]'>LIVE CELLS</span
             ><strong id="population">0</strong>
           </div>
           <div>
-            <span data-i18n-text='[[0,"РОЗМІР ПОЛЯ"]]'>FIELD SIZE</span
+            <span data-i18n-text='[[0,"FIELD SIZE"]]'>FIELD SIZE</span
             ><strong id="dimensions">—</strong>
           </div>
           <div class="rate-stat">
-            <span data-i18n-text='[[0,"ПРОДУКТИВНІСТЬ"]]'>PERFORMANCE</span
+            <span data-i18n-text='[[0,"PERFORMANCE"]]'>PERFORMANCE</span
             ><strong id="rate"
-              >— <small data-i18n-text='[[0,"ходів/с"]]'>steps/s</small></strong
+              >— <small data-i18n-text='[[0,"steps/s"]]'>steps/s</small></strong
             >
           </div>
           <div class="engine-indicator">
@@ -384,37 +384,37 @@
             class="view-layer-switch"
             role="group"
             aria-label="Monitor display mode"
-            data-i18n-aria-label="Режим відображення монітора"
+            data-i18n-aria-label="Monitor display mode"
           >
             <button
               type="button"
               id="lifeLayerButton"
               class="active"
               aria-pressed="true"
-              data-i18n-text='[[0,"◧ Клітини"]]'
+              data-i18n-text='[[0,"◧ Cells"]]'
             >
               ◧ Cells</button
             ><button
               type="button"
               id="heatLayerButton"
               aria-pressed="false"
-              data-i18n-text='[[0,"◉ Теплова карта"]]'
+              data-i18n-text='[[0,"◉ Heatmap"]]'
             >
               ◉ Heatmap
             </button>
           </div>
           <div id="thermalLegend" class="thermal-legend" hidden>
-            <span data-i18n-text='[[0,"Стабільні"]]'>Stable</span
+            <span data-i18n-text='[[0,"Stable"]]'>Stable</span
             ><i aria-hidden="true"></i
-            ><span data-i18n-text='[[0,"Активні / невідомі"]]'
+            ><span data-i18n-text='[[0,"Active / unknown"]]'
               >Active / unknown</span
             ><button
               id="heatInfoButton"
               type="button"
               title="What the heatmap shows"
               aria-label="Heatmap explanation"
-              data-i18n-title="Що показує теплова карта"
-              data-i18n-aria-label="Пояснення теплової карти"
+              data-i18n-title="What the heatmap shows"
+              data-i18n-aria-label="Heatmap explanation"
             >
               ⓘ
             </button>
@@ -422,7 +422,7 @@
           <span
             id="layerExplanation"
             class="layer-explanation"
-            data-i18n-text='[[0,"Чорне — мертве · біле — живе"]]'
+            data-i18n-text='[[0,"Black is dead · white is alive"]]'
             >Black is dead · white is alive</span
           >
         </div>
@@ -440,9 +440,9 @@
             aria-valuemax="100"
             aria-valuenow="0"
             hidden
-            data-i18n-aria-label="Завантаження області"
+            data-i18n-aria-label="Loading area"
           >
-            <span id="loadText" data-i18n-text='[[0,"Завантаження поля"]]'
+            <span id="loadText" data-i18n-text='[[0,"Loading field"]]'
               >Loading field</span
             >
             <div><i id="loadBar"></i></div>
@@ -450,9 +450,9 @@
           <span
             id="loadIdle"
             class="load-idle"
-            data-i18n-text='[[0,"Область перегляду готова"]]'
+            data-i18n-text='[[0,"Viewport ready"]]'
             >Viewport ready
-            <span data-i18n-text='[[0,"· точні стани, незалежний масштаб"]]'
+            <span data-i18n-text='[[0,"· exact states, independent zoom"]]'
               >· exact states, independent zoom</span
             ></span
           >
@@ -462,7 +462,7 @@
             id="worldCanvas"
             aria-label="Field: dead cells are black, live cells are white"
             tabindex="0"
-            data-i18n-aria-label="Поле: чорні клітини мертві, білі живі"
+            data-i18n-aria-label="Field: dead cells are black, live cells are white"
           ></canvas>
           <div class="canvas-corner top-left" id="viewOrigin">1.1</div>
           <div id="emptyOverlay" class="empty-overlay">
@@ -470,17 +470,17 @@
               ·&nbsp; ▪&nbsp; ·<br />·&nbsp; ·&nbsp; ▪<br />▪&nbsp; ▪&nbsp;
               ▪
             </div>
-            <h2 data-i18n-text='[[0,"Усе починається з клітини"]]'>
+            <h2 data-i18n-text='[[0,"It starts with a cell"]]'>
               It starts with a cell
             </h2>
             <p
-              data-i18n-text='[[0,"Створіть поле, оберіть фігуру"],[2,"або завантажте початковий стан."]]'
+              data-i18n-text='[[0,"Create a field, choose a pattern"],[2,"or load an initial state."]]'
             >
               Create a field, choose a pattern<br />or load an initial state.
             </p>
             <button
               id="emptyPatterns"
-              data-i18n-text='[[0,"Відкрити бібліотеку"]]'
+              data-i18n-text='[[0,"Open library"]]'
             >
               Open library <span>↗</span>
             </button>
@@ -488,10 +488,10 @@
           <div
             id="canvasLegend"
             class="canvas-legend"
-            data-i18n-text='[[2,"Жива"],[4,"Мертва"]]'
+            data-i18n-text='[[2,"Alive"],[4,"Dead"]]'
           >
             <i class="alive-swatch"></i>Alive<i class="dead-swatch"></i
-            >Dead<span id="lodLabel" data-i18n-text='[[0,"Клітини"]]'
+            >Dead<span id="lodLabel" data-i18n-text='[[0,"Cells"]]'
               >Cells</span
             >
           </div>
@@ -499,35 +499,35 @@
             <button
               id="zoomOut"
               aria-label="Zoom out"
-              data-i18n-aria-label="Віддалити"
+              data-i18n-aria-label="Zoom out"
             >
               −</button
             ><span id="zoomValue">100%</span
             ><button
               id="zoomIn"
               aria-label="Zoom in"
-              data-i18n-aria-label="Наблизити"
+              data-i18n-aria-label="Zoom in"
             >
               ＋</button
             ><span></span
             ><button
               id="fitIcon"
               aria-label="Fit field"
-              data-i18n-aria-label="Вмістити поле"
+              data-i18n-aria-label="Fit field"
             >
               ⛶
             </button>
           </div>
           <div id="pasteBar" class="paste-bar" hidden>
-            <span data-i18n-text='[[0,"Вставка: клацніть для розміщення"]]'
+            <span data-i18n-text='[[0,"Paste: click to place"]]'
               >Paste: click to place</span
             ><button id="pasteRotate">↻ 90°</button
             ><button id="pasteFlip">↔</button
             ><button
               id="pasteCenter"
               title="Place pattern at the center of the field"
-              data-i18n-title="Розмістити фігуру в центрі поля"
-              data-i18n-text='[[0,"У центр поля"]]'
+              data-i18n-title="Place pattern at the center of the field"
+              data-i18n-text='[[0,"Center on field"]]'
             >
               Center on field</button
             ><button id="cancelPaste">Esc ×</button>
@@ -536,19 +536,19 @@
         <footer class="statusbar">
           <span
             ><i class="status-dot"></i
-            ><span id="statusText" data-i18n-text='[[0,"Готово"]]'
+            ><span id="statusText" data-i18n-text='[[0,"Ready"]]'
               >Ready</span
             ></span
-          ><span id="cursorPosition" data-i18n-text='[[0,"Курсор —"]]'
+          ><span id="cursorPosition" data-i18n-text='[[0,"Cursor —"]]'
             >Cursor —</span
           ><span id="selectionInfo"></span><span class="status-spacer"></span
-          ><span id="memoryInfo" data-i18n-text='[[0,"Кеш 0 МБ"]]'
+          ><span id="memoryInfo" data-i18n-text='[[0,"Cache 0 MB"]]'
             >Cache 0 MB</span
           ><button
             id="checkpointButton"
             title="Save checkpoint"
-            data-i18n-title="Зберегти контрольну точку"
-            data-i18n-text='[[0,"◉ Зберегти стан"]]'
+            data-i18n-title="Save checkpoint"
+            data-i18n-text='[[0,"◉ Save state"]]'
           >
             ◉ Save state
           </button>
@@ -560,10 +560,10 @@
       <form id="newForm">
         <div class="dialog-heading">
           <div>
-            <div class="eyebrow" data-i18n-text='[[0,"НОВИЙ ВСЕСВІТ"]]'>
+            <div class="eyebrow" data-i18n-text='[[0,"NEW UNIVERSE"]]'>
               NEW UNIVERSE
             </div>
-            <h2 data-i18n-text='[[0,"Визначте межі поля"]]'>
+            <h2 data-i18n-text='[[0,"Set the field boundaries"]]'>
               Set the field boundaries
             </h2>
           </div>
@@ -571,13 +571,13 @@
         </div>
         <p
           class="dialog-copy"
-          data-i18n-text='[[0,"Розмір визначає простір. Порожні ділянки не потребують повного масиву пам’яті."]]'
+          data-i18n-text='[[0,"Dimensions define your space. Empty areas do not require a full memory array."]]'
         >
           Dimensions define your space. Empty areas do not require a full memory
           array.
         </p>
         <div class="form-grid">
-          <label data-i18n-text='[[0,"Стовпців"]]'
+          <label data-i18n-text='[[0,"Columns"]]'
             >Columns<input
               name="width"
               type="number"
@@ -585,7 +585,7 @@
               max="1000000000"
               value="4096"
               required /></label
-          ><label data-i18n-text='[[0,"Рядків"]]'
+          ><label data-i18n-text='[[0,"Rows"]]'
             >Rows<input
               name="height"
               type="number"
@@ -597,18 +597,18 @@
         </div>
         <label class="check-row"
           ><input name="wrap" type="checkbox" /><span
-            data-i18n-text='[[0,"З’єднати протилежні краї"]]'
+            data-i18n-text='[[0,"Connect opposite edges"]]'
             >Connect opposite edges<small
-              data-i18n-text='[[0,"Тор: сусіди за межею продовжуються з іншого боку."]]'
+              data-i18n-text='[[0,"Torus: neighbors beyond an edge continue on the opposite side."]]'
               >Torus: neighbors beyond an edge continue on the opposite
               side.</small
             ></span
           ></label
         >
         <div class="dialog-actions">
-          <button type="button" data-close data-i18n-text='[[0,"Скасувати"]]'>
+          <button type="button" data-close data-i18n-text='[[0,"Cancel"]]'>
             Cancel</button
-          ><button class="primary" data-i18n-text='[[0,"Створити поле →"]]'>
+          ><button class="primary" data-i18n-text='[[0,"Create field →"]]'>
             Create field →
           </button>
         </div>
@@ -618,10 +618,10 @@
       <form id="randomForm">
         <div class="dialog-heading">
           <div>
-            <div class="eyebrow" data-i18n-text='[[0,"ВИПАДКОВИЙ СТАН"]]'>
+            <div class="eyebrow" data-i18n-text='[[0,"RANDOM STATE"]]'>
               RANDOM STATE
             </div>
-            <h2 data-i18n-text='[[0,"Дайте хаосу початок"]]'>
+            <h2 data-i18n-text='[[0,"Start with randomness"]]'>
               Start with randomness
             </h2>
           </div>
@@ -629,7 +629,7 @@
         </div>
         <p
           class="dialog-copy"
-          data-i18n-text='[[0,"Координатний SplitMix64 дає однакові клітини в редакторі й на сервері за однакових seed, щільності й координат. 15% — імовірність для кожної клітини."]]'
+          data-i18n-text='[[0,"Coordinate-based SplitMix64 gives identical cells in the editor and on the server for the same seed, density, and coordinates. 15% is the probability for each cell."]]'
         >
           Coordinate-based SplitMix64 gives identical cells in the editor and on
           the server for the same seed, density, and coordinates. 15% is the
@@ -642,19 +642,19 @@
           aria-live="polite"
         ></p>
         <div class="form-grid">
-          <label data-i18n-text='[[0,"Лівий верхній кут"]]'
+          <label data-i18n-text='[[0,"Top-left corner"]]'
             >Top-left corner<input
               name="from"
               value="1.1"
               pattern="[0-9]+\.[0-9]+"
               required /></label
-          ><label data-i18n-text='[[0,"Правий нижній кут"]]'
+          ><label data-i18n-text='[[0,"Bottom-right corner"]]'
             >Bottom-right corner<input
               name="to"
               value="1024.1024"
               pattern="[0-9]+\.[0-9]+"
               required /></label
-          ><label data-i18n-text='[[0,"Живих клітин, %"]]'
+          ><label data-i18n-text='[[0,"Live cells, %"]]'
             >Live cells, %<input
               name="density"
               type="number"
@@ -672,7 +672,7 @@
               title="Integer from 0 to 18446744073709551615"
               value="42"
               required
-              data-i18n-title="Ціле число від 0 до 18446744073709551615"
+              data-i18n-title="Integer from 0 to 18446744073709551615"
           /></label>
         </div>
         <p class="dialog-copy" id="randomCounts"></p>
@@ -681,13 +681,13 @@
           <button
             type="button"
             id="randomFull"
-            data-i18n-text='[[0,"Усе поле"]]'
+            data-i18n-text='[[0,"Entire field"]]'
           >
             Entire field</button
           ><button
             class="primary"
             id="randomSubmit"
-            data-i18n-text='[[0,"Заповнити →"]]'
+            data-i18n-text='[[0,"Fill →"]]'
           >
             Fill →
           </button>
@@ -697,10 +697,10 @@
     <dialog id="patternsDialog" class="patterns-dialog">
       <div class="dialog-heading">
         <div>
-          <div class="eyebrow" data-i18n-text='[[0,"БІБЛІОТЕКА B3/S23"]]'>
+          <div class="eyebrow" data-i18n-text='[[0,"B3/S23 LIBRARY"]]'>
             B3/S23 LIBRARY
           </div>
-          <h2 data-i18n-text='[[0,"Маленькі форми. Великі можливості."]]'>
+          <h2 data-i18n-text='[[0,"Small patterns. Big possibilities."]]'>
             Small patterns. Big possibilities.
           </h2>
         </div>
@@ -708,29 +708,29 @@
       </div>
       <p
         class="dialog-copy"
-        data-i18n-text='[[0,"Усі фігури — справжні живі клітини. У редакторі оберіть місце вставлення."]]'
+        data-i18n-text='[[0,"Every pattern consists of real live cells. In the editor, choose where to paste it."]]'
       >
         Every pattern consists of real live cells. In the editor, choose where
         to paste it.
       </p>
       <div class="pattern-toolbar">
         <label class="search-field"
-          ><span class="sr-only" data-i18n-text='[[0,"Пошук фігури"]]'
+          ><span class="sr-only" data-i18n-text='[[0,"Find a pattern"]]'
             >Find a pattern</span
           ><input
             id="patternSearch"
             type="search"
             placeholder="Name, English term, or description…"
-            data-i18n-placeholder="Назва, англійський термін або опис…" /></label
+            data-i18n-placeholder="Name, English term, or description…" /></label
         ><label
-          ><span class="sr-only" data-i18n-text='[[0,"Категорія фігур"]]'
+          ><span class="sr-only" data-i18n-text='[[0,"Pattern category"]]'
             >Pattern category</span
           ><select
             id="patternCategory"
             aria-label="Pattern category"
-            data-i18n-aria-label="Категорія фігур"
+            data-i18n-aria-label="Pattern category"
           >
-            <option value="" data-i18n-text='[[0,"Усі категорії"]]'>
+            <option value="" data-i18n-text='[[0,"All categories"]]'>
               All categories
             </option>
           </select></label
@@ -741,7 +741,7 @@
         ><button
           id="clearPatternSearch"
           type="button"
-          data-i18n-text='[[0,"Скинути фільтри"]]'
+          data-i18n-text='[[0,"Reset filters"]]'
         >
           Reset filters
         </button>
@@ -760,7 +760,7 @@
             data-close
             class="icon-button"
             aria-label="Close"
-            data-i18n-aria-label="Закрити"
+            data-i18n-aria-label="Close"
           >
             ×
           </button>
@@ -769,7 +769,7 @@
         <label
           id="detailVariantLabel"
           hidden
-          data-i18n-text='[[0,"Входи схеми"]]'
+          data-i18n-text='[[0,"Circuit inputs"]]'
           >Circuit inputs<select id="detailVariant"></select
         ></label>
         <p id="detailReadout" class="pattern-readout" hidden></p>
@@ -777,7 +777,7 @@
         <label id="detailComputeRow" class="check-row" hidden
           ><input id="detailCompute" type="checkbox" /><span
             id="detailComputeLabel"
-            data-i18n-text='[[0,"Обчислити до зчитування"]]'
+            data-i18n-text='[[0,"Run to readout"]]'
             >Run to readout</span
           ></label
         >
@@ -786,14 +786,14 @@
           <button
             type="button"
             id="detailBack"
-            data-i18n-text='[[0,"До бібліотеки"]]'
+            data-i18n-text='[[0,"Back to library"]]'
           >
             Back to library</button
           ><button
             class="primary"
             id="detailLoad"
             type="submit"
-            data-i18n-text='[[0,"Завантажити"]]'
+            data-i18n-text='[[0,"Load"]]'
           >
             Load
           </button>
@@ -803,22 +803,22 @@
     <dialog id="exportDialog">
       <form id="exportForm">
         <div class="dialog-heading">
-          <h2 data-i18n-text='[[0,"Зберегти початковий стан"]]'>
+          <h2 data-i18n-text='[[0,"Save initial state"]]'>
             Save initial state
           </h2>
           <button type="button" data-close class="icon-button">×</button>
         </div>
-        <label data-i18n-text='[[0,"Формат"]]'
+        <label data-i18n-text='[[0,"Format"]]'
           >Format<select name="format">
             <option
               value="json"
-              data-i18n-text='[[0,"LIFE JSON — поле, межі та живі клітини"]]'
+              data-i18n-text='[[0,"LIFE JSON — field, boundaries, and live cells"]]'
             >
               LIFE JSON — field, boundaries, and live cells
             </option>
             <option
               value="rle"
-              data-i18n-text='[[0,"RLE — сумісність із Golly / LifeViewer"]]'
+              data-i18n-text='[[0,"RLE — Golly / LifeViewer compatibility"]]'
             >
               RLE — Golly / LifeViewer compatibility
             </option>
@@ -826,15 +826,15 @@
         >
         <p
           class="dialog-copy"
-          data-i18n-text='[[0,"JSON зберігає розмір поля й топологію. RLE зберігає фігуру та позицію."]]'
+          data-i18n-text='[[0,"JSON preserves field dimensions and topology. RLE preserves the pattern and its position."]]'
         >
           JSON preserves field dimensions and topology. RLE preserves the
           pattern and its position.
         </p>
         <div class="dialog-actions">
-          <button type="button" data-close data-i18n-text='[[0,"Скасувати"]]'>
+          <button type="button" data-close data-i18n-text='[[0,"Cancel"]]'>
             Cancel</button
-          ><button class="primary" data-i18n-text='[[0,"Завантажити файл ↓"]]'>
+          ><button class="primary" data-i18n-text='[[0,"Download file ↓"]]'>
             Download file ↓
           </button>
         </div>
@@ -843,10 +843,10 @@
     <dialog id="settingsDialog" class="settings-dialog">
       <div class="dialog-heading">
         <div>
-          <div class="eyebrow" data-i18n-text='[[0,"НАЛАШТУВАННЯ"]]'>
+          <div class="eyebrow" data-i18n-text='[[0,"SETTINGS"]]'>
             SETTINGS
           </div>
-          <h2 data-i18n-text='[[0,"Ресурси та відображення"]]'>
+          <h2 data-i18n-text='[[0,"Resources and display"]]'>
             Resources and display
           </h2>
         </div>
@@ -858,20 +858,20 @@
             type="button"
             class="active"
             data-settings-tab="display"
-            data-i18n-text='[[0,"Відображення"]]'
+            data-i18n-text='[[0,"Display"]]'
           >
             Display</button
           ><button
             type="button"
             data-settings-tab="backend"
-            data-i18n-text='[[0,"Симуляція / конфіг"]]'
+            data-i18n-text='[[0,"Simulation / config"]]'
           >
             Simulation / config
           </button>
         </div>
         <div id="displaySettings">
           <div class="form-grid">
-            <label data-i18n-text='[[0,"Рівнів сірого"]]'
+            <label data-i18n-text='[[0,"Grayscale levels"]]'
               >Grayscale levels<input
                 name="levels"
                 type="number"
@@ -880,11 +880,11 @@
                 value="32"
               /><small
                 class="field-help"
-                data-i18n-text='[[0,"Кількість відтінків при віддаленні. Клітини зблизька залишаються чорними або білими."]]'
+                data-i18n-text='[[0,"Number of shades when zoomed out. Close-up cells remain black or white."]]'
                 >Number of shades when zoomed out. Close-up cells remain black
                 or white.</small
               ></label
-            ><label data-i18n-text='[[0,"Яскравість непорожнього блока"]]'
+            ><label data-i18n-text='[[0,"Nonempty block brightness"]]'
               >Nonempty block brightness<input
                 name="bias"
                 type="number"
@@ -894,11 +894,11 @@
                 value="0.12"
               /><small
                 class="field-help"
-                data-i18n-text='[[0,"Додаткова видимість лише непорожніх блоків: від 0 до 1. Порожній блок завжди чорний."]]'
+                data-i18n-text='[[0,"Extra visibility for nonempty blocks only, from 0 to 1. An empty block is always black."]]'
                 >Extra visibility for nonempty blocks only, from 0 to 1. An
                 empty block is always black.</small
               ></label
-            ><label data-i18n-text='[[0,"Насиченість першого рівня"]]'
+            ><label data-i18n-text='[[0,"First-level saturation"]]'
               >First-level saturation<input
                 name="gain"
                 type="number"
@@ -908,11 +908,11 @@
                 value="2.5"
               /><small
                 class="field-help"
-                data-i18n-text='[[0,"Підсилення щільності у блоках до 64 × 64 клітин. Впливає тільки на вигляд."]]'
+                data-i18n-text='[[0,"Density gain for blocks up to 64 × 64 cells. Affects appearance only."]]'
                 >Density gain for blocks up to 64 × 64 cells. Affects appearance
                 only.</small
               ></label
-            ><label data-i18n-text='[[0,"Насиченість верхніх рівнів"]]'
+            ><label data-i18n-text='[[0,"Upper-level saturation"]]'
               >Upper-level saturation<input
                 name="upperGain"
                 type="number"
@@ -922,11 +922,11 @@
                 value="1.8"
               /><small
                 class="field-help"
-                data-i18n-text='[[0,"Підсилення щільності для блоків більших за 64 × 64 на дальньому масштабі."]]'
+                data-i18n-text='[[0,"Density gain for blocks larger than 64 × 64 at distant zoom levels."]]'
                 >Density gain for blocks larger than 64 × 64 at distant zoom
                 levels.</small
               ></label
-            ><label data-i18n-text='[[0,"Кеш браузера, МБ"]]'
+            ><label data-i18n-text='[[0,"Browser cache, MB"]]'
               >Browser cache, MB<input
                 name="cacheMB"
                 type="number"
@@ -935,11 +935,11 @@
                 value="64"
               /><small
                 class="field-help"
-                data-i18n-text='[[0,"Пам’ять для кешу сусідніх областей монітора. Поточний кадр та інша пам’ять браузера обліковуються окремо."]]'
+                data-i18n-text='[[0,"Memory for neighboring monitor areas. The current frame and other browser memory are counted separately."]]'
                 >Memory for neighboring monitor areas. The current frame and
                 other browser memory are counted separately.</small
               ></label
-            ><label data-i18n-text='[[0,"Історія редагувань, МБ"]]'
+            ><label data-i18n-text='[[0,"Edit history, MB"]]'
               >Edit history, MB<input
                 name="undoMB"
                 type="number"
@@ -948,7 +948,7 @@
                 value="32"
               /><small
                 class="field-help"
-                data-i18n-text='[[0,"Бюджет історії змін. Найдавніші записи видаляються після перевищення; надто велика операція може не мати скасування."]]'
+                data-i18n-text='[[0,"Undo history budget. Oldest records are removed when exceeded; a very large operation may not be undoable."]]'
                 >Undo history budget. Oldest records are removed when exceeded;
                 a very large operation may not be undoable.</small
               ></label
@@ -956,20 +956,20 @@
           </div>
           <details class="heat-settings">
             <summary
-              data-i18n-text='[[0,"Теплова карта монітора — фіксована шкала"]]'
+              data-i18n-text='[[0,"Monitor heatmap — fixed scale"]]'
             >
               Monitor heatmap — fixed scale
             </summary>
             <p
               class="field-help"
-              data-i18n-text='[[0,"Умовна активність за підтвердженими періодами й щільністю. Це не математична ентропія. Шкала однакова для всіх кадрів; налаштування не змінюють клітини."]]'
+              data-i18n-text='[[0,"Qualitative activity based on verified periods and density, not mathematical entropy. The scale is the same for all frames; these settings do not alter cells."]]'
             >
               Qualitative activity based on verified periods and density, not
               mathematical entropy. The scale is the same for all frames; these
               settings do not alter cells.
             </p>
             <div class="form-grid">
-              <label data-i18n-text='[[0,"Стабільний стан"]]'
+              <label data-i18n-text='[[0,"Stable state"]]'
                 >Stable state<input
                   name="heat_stable"
                   type="number"
@@ -978,12 +978,12 @@
                   step="0.01"
                 /><small
                   class="field-help"
-                  data-i18n-text='[[0,"База для чинного періоду 1; холодніше за інші цикли."]]'
+                  data-i18n-text='[[0,"Base temperature for a valid period of 1; colder than other cycles."]]'
                   >Base temperature for a valid period of 1; colder than other
                   cycles.</small
                 ></label
               >
-              <label data-i18n-text='[[0,"Цикл періоду 64"]]'
+              <label data-i18n-text='[[0,"Period-64 cycle"]]'
                 >Period-64 cycle<input
                   name="heat_cycle_max"
                   type="number"
@@ -992,12 +992,12 @@
                   step="0.01"
                 /><small
                   class="field-help"
-                  data-i18n-text='[[0,"Верхня база циклів. Проміжні періоди відображаються логарифмічно."]]'
+                  data-i18n-text='[[0,"Upper cycle baseline. Intermediate periods use a logarithmic scale."]]'
                   >Upper cycle baseline. Intermediate periods use a logarithmic
                   scale.</small
                 ></label
               >
-              <label data-i18n-text='[[0,"Активний / невідомий стан"]]'
+              <label data-i18n-text='[[0,"Active / unknown state"]]'
                 >Active / unknown state<input
                   name="heat_active"
                   type="number"
@@ -1006,12 +1006,12 @@
                   step="0.01"
                 /><small
                   class="field-help"
-                  data-i18n-text='[[0,"Відсутній чинний підтверджений період. Завжди тепліше від циклів за однакової щільності."]]'
+                  data-i18n-text='[[0,"No currently verified period. Always warmer than cycles at the same density."]]'
                   >No currently verified period. Always warmer than cycles at
                   the same density.</small
                 ></label
               >
-              <label data-i18n-text='[[0,"Додаток від щільності"]]'
+              <label data-i18n-text='[[0,"Density contribution"]]'
                 >Density contribution<input
                   name="heat_density_gain"
                   type="number"
@@ -1020,12 +1020,12 @@
                   step="0.01"
                 /><small
                   class="field-help"
-                  data-i18n-text='[[0,"Нагріває і цикли, і активні області. Разом із базою активного стану — не більше 1."]]'
+                  data-i18n-text='[[0,"Warms both cyclic and active areas. Combined with the active baseline, must not exceed 1."]]'
                   >Warms both cyclic and active areas. Combined with the active
                   baseline, must not exceed 1.</small
                 ></label
               >
-              <label data-i18n-text='[[0,"Опорна щільність"]]'
+              <label data-i18n-text='[[0,"Reference density"]]'
                 >Reference density<input
                   name="heat_density_reference"
                   type="number"
@@ -1034,12 +1034,12 @@
                   step="0.01"
                 /><small
                   class="field-help"
-                  data-i18n-text='[[0,"Частка живих: 0.15 = 15%. При ній додаток від щільності максимальний; значення має бути більше нуля."]]'
+                  data-i18n-text='[[0,"Live fraction: 0.15 = 15%. The density contribution reaches its maximum here; must be greater than zero."]]'
                   >Live fraction: 0.15 = 15%. The density contribution reaches
                   its maximum here; must be greater than zero.</small
                 ></label
               >
-              <label data-i18n-text='[[0,"Вага гарячих осередків"]]'
+              <label data-i18n-text='[[0,"Hot spot weight"]]'
                 >Hot spot weight<input
                   name="heat_hotspot_mix"
                   type="number"
@@ -1048,7 +1048,7 @@
                   step="0.05"
                 /><small
                   class="field-help"
-                  data-i18n-text='[[0,"0 — середнє за живими клітинами; 1 — найгарячіший фрагмент. 0.25 зберігає малі активні ділянки при віддаленні."]]'
+                  data-i18n-text='[[0,"0 uses the live-cell mean; 1 uses the hottest fragment. 0.25 preserves small active areas when zoomed out."]]'
                   >0 uses the live-cell mean; 1 uses the hottest fragment. 0.25
                   preserves small active areas when zoomed out.</small
                 ></label
@@ -1057,18 +1057,18 @@
           </details>
           <label
             class="check-row"
-            data-i18n-text='[[1,"Показувати сітку при наближенні"]]'
+            data-i18n-text='[[1,"Show grid when zoomed in"]]'
             ><input name="grid" type="checkbox" checked />Show grid when zoomed
             in<small
               class="field-help"
-              data-i18n-text='[[0,"Лінії клітин з’являються, коли масштаб достатній для читання. Не змінює стан поля."]]'
+              data-i18n-text='[[0,"Cell outlines appear at a readable zoom level. The field state is unaffected."]]'
               >Cell outlines appear at a readable zoom level. The field state is
               unaffected.</small
             ></label
           >
           <p
             class="dialog-copy"
-            data-i18n-text='[[0,"Насиченість змінює тільки зображення. Порожній блок завжди чорний. Кількість живих клітин зберігається точно."]]'
+            data-i18n-text='[[0,"Saturation only affects the image. Empty blocks are always black. Live-cell counts remain exact."]]'
           >
             Saturation only affects the image. Empty blocks are always black.
             Live-cell counts remain exact.
@@ -1076,10 +1076,10 @@
         </div>
         <div id="backendSettings" hidden>
           <details class="connection-settings">
-            <summary data-i18n-text='[[0,"Токен віддаленого доступу"]]'>
+            <summary data-i18n-text='[[0,"Remote access token"]]'>
               Remote access token
             </summary>
-            <label data-i18n-text='[[0,"Токен"]]'
+            <label data-i18n-text='[[0,"Token"]]'
               >Token<input
                 id="accessToken"
                 type="password"
@@ -1088,26 +1088,26 @@
             /></label>
             <p
               class="field-help"
-              data-i18n-text='[[0,"Зберігається лише в цій вкладці. Не потрапляє у файл конфігурації."]]'
+              data-i18n-text='[[0,"Stored only in this tab. Excluded from the configuration file."]]'
             >
               Stored only in this tab. Excluded from the configuration file.
             </p>
             <button
               type="button"
               id="connectToken"
-              data-i18n-text='[[0,"Підключити"]]'
+              data-i18n-text='[[0,"Connect"]]'
             >
               Connect
             </button>
           </details>
           <p
             class="config-notice"
-            data-i18n-text='[[0,"Поля з позначкою"],[2,"можна застосувати до запущеного сервера. Поля"],[4,"готують наступний запуск. Зміни через API не записують config.toml на диск. Конфіг не містить живих клітин: збережіть стан окремо."]]'
+            data-i18n-text='[[0,"Fields marked"],[2,"can be applied to a running server. Fields marked"],[4,"prepare the next startup. API changes do not write config.toml to disk. The config contains no live cells: save the state separately."]]'
           >
             Fields marked
-            <strong data-i18n-text='[[0,"«Одразу»"]]'>“Live”</strong> can be
+            <strong data-i18n-text='[[0,"“Live”"]]'>“Live”</strong> can be
             applied to a running server. Fields marked
-            <strong data-i18n-text='[[0,"«Перезапуск»"]]'>“Restart”</strong>
+            <strong data-i18n-text='[[0,"“Restart”"]]'>“Restart”</strong>
             prepare the next startup. API changes do not write config.toml to
             disk. The config contains no live cells: save the state separately.
           </p>
@@ -1117,20 +1117,20 @@
             <button
               type="button"
               id="reloadConfig"
-              data-i18n-text='[[0,"Скинути чернетку / перечитати"]]'
+              data-i18n-text='[[0,"Reset draft / reload"]]'
             >
               Reset draft / reload</button
             ><button
               type="button"
               id="downloadConfig"
-              data-i18n-text='[[0,"↓ Завантажити повний config.toml"]]'
+              data-i18n-text='[[0,"↓ Download full config.toml"]]'
             >
               ↓ Download full config.toml
             </button>
           </div>
           <p
             class="field-help"
-            data-i18n-text='[[0,"Для постійних налаштувань збережіть завантажений файл та запустіть сервер із параметром"],[2,". Чернетка залишається тут, доки ви її не скинете."]]'
+            data-i18n-text='[[0,"To persist settings, save the downloaded file and start the server with"],[2,". Your draft stays here until you reset it."]]'
           >
             To persist settings, save the downloaded file and start the server
             with <code>--config config.toml</code>. Your draft stays here until
@@ -1148,12 +1148,12 @@
           <button id="settingsDownloadShortcut" type="button" hidden>
             ↓ config.toml
           </button>
-          <button type="button" data-close data-i18n-text='[[0,"Закрити"]]'>
+          <button type="button" data-close data-i18n-text='[[0,"Close"]]'>
             Close</button
           ><button
             id="applySettingsButton"
             class="primary"
-            data-i18n-text='[[0,"Зберегти вигляд"]]'
+            data-i18n-text='[[0,"Save display settings"]]'
           >
             Save display settings
           </button>
@@ -1163,10 +1163,10 @@
     <dialog id="infoDialog" class="info-dialog">
       <div class="dialog-heading">
         <div>
-          <div class="eyebrow" data-i18n-text='[[0,"СТРУКТУРА ТА РЕСУРСИ"]]'>
+          <div class="eyebrow" data-i18n-text='[[0,"STRUCTURE AND RESOURCES"]]'>
             STRUCTURE AND RESOURCES
           </div>
-          <h2 data-i18n-text='[[0,"Додаткова інформація"]]'>
+          <h2 data-i18n-text='[[0,"Additional information"]]'>
             Additional information
           </h2>
         </div>
@@ -1174,7 +1174,7 @@
           data-close
           class="icon-button"
           aria-label="Close"
-          data-i18n-aria-label="Закрити"
+          data-i18n-aria-label="Close"
         >
           ×
         </button>
@@ -1183,38 +1183,38 @@
     </dialog>
     <dialog id="helpDialog">
       <div class="dialog-heading">
-        <h2 data-i18n-text='[[0,"Кілька простих рухів"]]'>
+        <h2 data-i18n-text='[[0,"A few simple gestures"]]'>
           A few simple gestures
         </h2>
         <button data-close class="icon-button">×</button>
       </div>
       <div class="shortcut-list">
-        <span data-i18n-text='[[0,"Масштаб навколо курсора"]]'
+        <span data-i18n-text='[[0,"Zoom around the cursor"]]'
           >Zoom around the cursor</span
-        ><kbd data-i18n-text='[[0,"Колесо"]]'>Scroll wheel</kbd
-        ><span data-i18n-text='[[0,"Перемістити поле"]]'>Pan the field</span
-        ><kbd data-i18n-text='[[0,"Пробіл + рух"]]'>Space + drag</kbd
-        ><span data-i18n-text='[[0,"Олівець / гумка / рука"]]'
+        ><kbd data-i18n-text='[[0,"Scroll wheel"]]'>Scroll wheel</kbd
+        ><span data-i18n-text='[[0,"Pan the field"]]'>Pan the field</span
+        ><kbd data-i18n-text='[[0,"Space + drag"]]'>Space + drag</kbd
+        ><span data-i18n-text='[[0,"Pencil / eraser / hand"]]'
           >Pencil / eraser / hand</span
         ><kbd>B / E / H</kbd
-        ><span data-i18n-text='[[0,"Виділення / лінія / рамка"]]'
+        ><span data-i18n-text='[[0,"Select / line / rectangle"]]'
           >Select / line / rectangle</span
         ><kbd>S / L / R</kbd
-        ><span data-i18n-text='[[0,"Копія / вирізати / вставити"]]'
+        ><span data-i18n-text='[[0,"Copy / cut / paste"]]'
           >Copy / cut / paste</span
         ><kbd>Ctrl C / X / V</kbd
-        ><span data-i18n-text='[[0,"Скасувати / повторити"]]'>Undo / redo</span
+        ><span data-i18n-text='[[0,"Undo / redo"]]'>Undo / redo</span
         ><kbd>Ctrl Z / Y</kbd
-        ><span data-i18n-text='[[0,"Видалити область"]]'>Delete area</span
+        ><span data-i18n-text='[[0,"Delete area"]]'>Delete area</span
         ><kbd>Delete</kbd
-        ><span data-i18n-text='[[0,"Вмістити поле"]]'>Fit field</span
+        ><span data-i18n-text='[[0,"Fit field"]]'>Fit field</span
         ><kbd>F</kbd
-        ><span data-i18n-text='[[0,"Скасувати вставку"]]'>Cancel paste</span
+        ><span data-i18n-text='[[0,"Cancel paste"]]'>Cancel paste</span
         ><kbd>Esc</kbd>
       </div>
       <p
         class="dialog-copy"
-        data-i18n-text='[[0,"Координати починаються з 1. Запис"],[2,"означає стовпець 1666, рядок 1888. Чорне — мертве; біле — живе. Сіре на віддаленні показує щільність."]]'
+        data-i18n-text='[[0,"Coordinates start at 1. The notation"],[2,"means column 1666, row 1888. Black is dead; white is alive. Gray at distant zoom levels shows density."]]'
       >
         Coordinates start at 1. The notation <strong>1666.1888</strong> means
         column 1666, row 1888. Black is dead; white is alive. Gray at distant
@@ -1222,22 +1222,22 @@
       </p>
       <p
         class="dialog-copy"
-        data-i18n-text='[[0,"Клітина народжується з 3 сусідами; виживає з 2 або 3. Усі зміни покоління відбуваються одночасно. Монітор працює з Python-сервером; конфігуратор відкривається автономно."]]'
+        data-i18n-text='[[0,"A cell is born with 3 neighbors and survives with 2 or 3. All generation changes happen simultaneously. The monitor connects to the Python server; the editor works offline."]]'
       >
         A cell is born with 3 neighbors and survives with 2 or 3. All generation
         changes happen simultaneously. The monitor connects to the Python
         server; the editor works offline.
       </p>
     </dialog>
-    <script src="ui-locales.js?v=i18n1"></script>
-    <script src="config-locales.js?v=i18n1"></script>
-    <script src="catalog-locales.js?v=i18n1"></script>
-    <script src="i18n.js?v=i18n1"></script>
-    <script src="patterns.js?v=i18n1"></script>
-    <script src="device-library.js?v=i18n1"></script>
-    <script src="catalog.js?v=i18n1"></script>
-    <script src="core.js?v=i18n1"></script>
-    <script src="config-editor.js?v=i18n1"></script>
-    <script src="app.js?v=i18n1"></script>
+    <script src="ui-locales.js?v=i18n2"></script>
+    <script src="config-locales.js?v=i18n2"></script>
+    <script src="catalog-locales.js?v=i18n2"></script>
+    <script src="i18n.js?v=i18n2"></script>
+    <script src="patterns.js?v=i18n2"></script>
+    <script src="device-library.js?v=i18n2"></script>
+    <script src="catalog.js?v=i18n2"></script>
+    <script src="core.js?v=i18n2"></script>
+    <script src="config-editor.js?v=i18n2"></script>
+    <script src="app.js?v=i18n2"></script>
   </body>
 </html>

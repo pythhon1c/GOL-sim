@@ -52,13 +52,13 @@ test("all UI/config translations retain their placeholders and contain actual tr
   const placeholders = (s) =>
     [...s.matchAll(/\{\d+\}/g)].map((m) => m[0]).sort();
   for (const [source, translations] of Object.entries(I.messages)) {
-    assert.equal(translations.length, 2, source);
-    for (const [index, text] of translations.entries()) {
+    assert.doesNotMatch(source, /\p{Script=Cyrillic}/u);
+    assert.deepEqual(Object.keys(translations).sort(), ["ru", "uk"]);
+    for (const [language, text] of Object.entries(translations)) {
       assert.equal(typeof text, "string", source);
       assert(text.trim(), source);
       assert.deepEqual(placeholders(text), placeholders(source), source);
-      if (index === 0) assert(!/[А-Яа-яІіЇїЄєҐґ]/.test(text), source);
-      else assert(!/[ІіЇїЄєҐґ]/.test(text), source);
+      if (language === "ru") assert.doesNotMatch(text, /[\u0404\u0406\u0407\u0454\u0456\u0457\u0490\u0491]/u);
     }
   }
 });
@@ -67,10 +67,10 @@ test("ordinary and tagged interpolation use the same locale without changing coo
   for (const lang of I.languages) {
     I.setLanguage(lang, { persist: false });
     assert.equal(
-      I.t("Покоління {0}. {1}", 128, "42.17"),
-      I.t`Покоління ${128}. ${"42.17"}`,
+      I.t("Generation {0}. {1}", 128, "42.17"),
+      I.t`Generation ${128}. ${"42.17"}`,
     );
-    assert.match(I.t`Покоління ${128}. ${"42.17"}`, /42\.17$/);
+    assert.match(I.t`Generation ${128}. ${"42.17"}`, /42\.17$/);
   }
   I.setLanguage("en", { persist: false });
   assert.equal(I.formatNumber(12345.5), "12,345.5");
@@ -91,11 +91,11 @@ test("ordinary and tagged interpolation use the same locale without changing coo
 test("explicit static bindings update text and accessibility without touching input values", () => {
   const b = browser(),
     text = { nodeType: 3, nodeValue: "  Monitor ", isConnected: true };
-  const selector = { value: "en" },
+  const selector = { value: "en", options: [{value:"ru",dataset:{languageName:"Russian"}}, {value:"uk",dataset:{languageName:"Ukrainian"}}] },
     draft = { value: "00018446744073709551615" };
   const attributes = {
-    "data-i18n-text": '[[0,"Монітор"]]',
-    "data-i18n-title": "Налаштування",
+    "data-i18n-text": '[[0,"Monitor"]]',
+    "data-i18n-title": "Settings",
   };
   const element = {
     childNodes: [text],
@@ -112,10 +112,12 @@ test("explicit static bindings update text and accessibility without touching in
   };
   b.I.bindDocument(document);
   b.I.setLanguage("ru");
-  assert.equal(text.nodeValue, "  Монитор ");
-  assert.equal(attributes.title, "Настройки");
+  assert.equal(text.nodeValue, "  " + I.messages.Monitor.ru + " ");
+  assert.equal(attributes.title, I.messages.Settings.ru);
   assert.equal(document.documentElement.lang, "ru");
   assert.equal(selector.value, "ru");
+  assert.equal(selector.options[0].textContent, I.messages.Russian.ru);
+  assert.equal(selector.options[1].textContent, I.messages.Ukrainian.uk);
   assert.equal(draft.value, "00018446744073709551615");
   text.isConnected = false;
   text.nodeValue = "User content";
@@ -133,6 +135,7 @@ test("every declared HTML binding is translated; English is the source document 
       .replace(/&gt;/g, ">")
       .replace(/&amp;/g, "&");
   assert.match(html, /<html lang="en">/);
+  for (const name of ["index.html", "app.js", "core.js", "config-editor.js", "catalog.js", "i18n.js"]) assert.doesNotMatch(read(name), /\p{Script=Cyrillic}/u, name);
   let count = 0;
   for (const match of html.matchAll(
     /data-i18n-text=(?:"([^"]*)"|'([^']*)')/g,
@@ -163,7 +166,17 @@ test("every shipped catalog card is localized by ID while physics metadata stays
     for (const p of patterns) {
       assert(catalogLocales[lang].patterns[p.id], p.id);
       assert(catalogLocales[lang].categories[p.type], p.type);
+      const entry = catalogLocales[lang].patterns[p.id];
       const localized = I.pattern(p);
+      assert.equal(localized.name, entry.name, p.id);
+      assert.equal(localized.note, entry.note, p.id);
+      assert.equal(localized.type, catalogLocales[lang].categories[p.type], p.id);
+      if (p.description) assert.equal(localized.description, entry.description, p.id);
+      if (p.demo) assert.equal(localized.demo.observation, entry.demoObservation, p.id);
+      for (const searchLanguage of I.languages) {
+        const reference = catalogLocales[searchLanguage].patterns[p.id];
+        for (const value of [reference.name, reference.search].filter(Boolean)) assert(I.searchText(p).includes(value.toLocaleLowerCase(I.locale())), p.id);
+      }
       assert.equal(localized.id, p.id);
       assert.equal(localized.rle, p.rle);
       assert.equal(localized.verification, p.verification);
@@ -175,7 +188,7 @@ test("every shipped catalog card is localized by ID while physics metadata stays
       }
       if (lang === "en")
         assert(
-          !/[А-Яа-яІіЇїЄєҐґ]/.test(
+          !/\p{Script=Cyrillic}/u.test(
             localized.name + localized.note + (localized.description || ""),
           ),
           p.id,
@@ -222,7 +235,7 @@ test("offline Blob workers have localized validation and identical exact random 
         }
       })(),
     );
-    if (lang === "en") assert(!/[А-Яа-яІіЇїЄєҐґ]/.test(context.message));
+    if (lang === "en") assert(!/\p{Script=Cyrillic}/u.test(context.message));
     assert.equal(context.fetch, undefined);
   }
   I.setLanguage("en", { persist: false });

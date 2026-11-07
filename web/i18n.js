@@ -33,8 +33,7 @@
         (text, part, i) => text + (i ? "{" + (i - 1) + "}" : "") + part,
         "",
       );
-    const entry = table[key];
-    const text = lang === "uk" || !entry ? key : entry[lang === "ru" ? 1 : 0];
+    const text = table[key]?.[lang] ?? key;
     return String(text).replace(/\{(\d+)\}/g, (token, index) =>
       index < values.length ? String(values[index]) : token,
     );
@@ -89,7 +88,13 @@
         );
     }
     const selector = document.getElementById("languageSelect");
-    if (selector) selector.value = language;
+    if (selector) {
+      selector.value = language;
+      for (const option of selector.options || []) {
+        const key = option.dataset.languageName;
+        if (key) option.textContent = translate(messages, option.value, key, []);
+      }
+    }
   }
   function setLanguage(next, options = {}) {
     if (!languages.includes(next))

@@ -1,23 +1,22 @@
-# Одноразові глайдерні схеми B3/S23
+# Single-use glider circuits in Conway's Game of Life
 
-Ці схеми — початкові стани класичної гри, які обробляють по одній парі бітів. Для кожного входу значення 1 додає один п’ятиклітинний глайдер у заданому місці; значення 0 залишає це місце порожнім. Тактові глайдери не залежать від входів. Після запуску жодних команд для перемикання бітів не потрібно. Щоб подати іншу пару, відкрийте відповідний початковий стан.
+Choose the input pair `00`, `01`, `10` or `11` in the circuit's folder and open its JSON or RLE file. Each file starts a 112 × 112 board at generation 0 with dead cells beyond its edges. An input of 1 adds a five-cell glider in a fixed position. An input of 0 leaves that position empty. Any clock gliders are present for every input pair.
 
-У кожній з папок лежать чотири варіанти: `00`, `01`, `10`, `11`, у форматах JSON і RLE. Відкривайте їх як окреме поле 112×112 з мертвими зовнішніми клітинами. У таблиці наведено координати від 1 та час у поколіннях від початкового стану. Для виходу 1 у вказаній ділянці має з’явитися весь глайдер (або блок пам’яті), для 0 — ділянка порожня. Глайдери поза вікном зчитування не є виходом цієї схеми.
+Advance to the generation in the table and inspect the indicated rectangle. Its corners use one-based **column.row** coordinates and include both endpoints. A complete five-cell glider, or a four-cell block in the memory example, represents 1. An empty rectangle represents 0. Gliders elsewhere on the board can continue moving after readout. Load the next input pair to run another experiment.
 
-| Схема | Виходи для 00, 01, 10, 11 | Покоління | Вікно зчитування, включно | Механізм |
-|---|---|---:|---|---|
-| NOR | 1, 0, 0, 0 | 96 | 43.43–45.45 | Будь-який вхід може погасити той самий тактовий глайдер. |
-| OR | 0, 1, 1, 1 | 128 | 33.33–35.35 | Другий тактовий глайдер гаситься виходом NOR лише при 00. |
-| NAND | 1, 1, 1, 0 | 120 | 55.41–57.43 | Лише 11 утворює блок AND; цей блок перехоплює відкладений глайдер читання. |
-| XNOR | 1, 0, 0, 1 | 80 | 50.24–52.26 | Один вхід гасить тактовий глайдер, а два гасять один одного і пропускають його. |
-| XOR | 0, 1, 1, 0 | 112 | 32.40–34.42 | Ще один глайдер інвертує вихід XNOR. Обидві одиниці — той самий глайдер на тій самій доріжці. |
-| Інгібітор (A І НЕ B) | 0, 0, 1, 0 | 96 | 43.43–45.45 | A летить до виходу, а B, коли присутній, його гасить. Варіант 00 цього вентиля — повністю порожнє поле. |
-| Імплікація (A ⇒ B) | 1, 1, 0, 1 | 120 | 19.19–21.21 | Тактовий глайдер інвертує вихід інгібітора. |
-| Пам’ять: запис D, скидання R | 0, 0, 1, 0 | 144 | 51.51–52.52 | На ході 60 у цій самій комірці вже записано D. Відкладений R=1 очищає її; при R=0 біт утримує нерухомий блок. |
+| Circuit | Outputs for 00, 01, 10, 11 | Read generation | Output rectangle | How the output forms |
+| --- | --- | ---: | --- | --- |
+| [NOR](nor/) | 1, 0, 0, 0 | 96 | 43.43–45.45 | Either input can extinguish the clock glider. |
+| [OR](or/) | 0, 1, 1, 1 | 128 | 33.33–35.35 | The NOR output extinguishes a second clock glider only for input 00. |
+| [NAND](nand/) | 1, 1, 1, 0 | 120 | 55.41–57.43 | Input 11 builds an AND block that intercepts the delayed readout glider. |
+| [XNOR](xnor/) | 1, 0, 0, 1 | 80 | 50.24–52.26 | A single input extinguishes the clock glider. Two inputs annihilate each other and leave its path clear. |
+| [XOR](xor/) | 0, 1, 1, 0 | 112 | 32.40–34.42 | Another glider inverts the XNOR output. For 01 and 10, the output glider follows the same track. |
+| [Inhibitor (A AND NOT B)](inhibit/) | 0, 0, 1, 0 | 96 | 43.43–45.45 | A travels toward the output. If present, B extinguishes A. Input 00 starts with a completely empty board. |
+| [Implication (A ⇒ B)](implies/) | 1, 1, 0, 1 | 120 | 19.19–21.21 | A clock glider inverts the inhibitor output. |
+| [One-bit memory (write D, reset R)](block-memory/) | 0, 0, 1, 0 | 144 | 51.51–52.52 | This location stores D at generation 60. A delayed reset glider clears the block when R is 1. |
 
-У пам’яті D=1 записує блок зіткненням вхідного і тактового глайдерів; D=0 не створює блоку. Це одна операція запису й одне необов’язкове скидання в заданому порядку. Це не багатотактний регістр із довільними командами.
+The memory example performs one write followed by an optional reset. When D is 1, the data glider collides with the clock glider to leave a block. When D is 0, the write leaves the output empty. With R set to 0, a written block persists at the same location.
 
-Точні клітини та доріжки кожного виходу описані в [extended-truth-tables.json](extended-truth-tables.json); цей технічний маніфест відлічує координати від нуля. [build_extensions.py](build_extensions.py) відтворює файли з геометрії вхідних і тактових глайдерів без моделювання логічних виходів. Усі виходи перевіряються незалежною поклітинною реалізацією правила B3/S23 та рушієм Rust для кожного покоління. Для сигналів перевіряються також дві наступні позиції того самого глайдера через чотири та вісім ходів; для комірки пам’яті — 64 додаткові покоління після остаточного зчитування.
+The [manifest](extended-truth-tables.json) gives the exact initial cells, output cells, and velocity of each output signal in zero-based coordinates. The [generator](build_extensions.py) constructs the starting states from the geometry of the gliders. The [tests](../../tests/test_logic_extensions.py) compare the Rust engine with an independent cell-by-cell B3/S23 simulation at every generation. They also check moving signals on the same track four and eight generations after readout and follow the stored memory bit for 64 additional generations.
 
-**Походження.** Координати цієї серії складено та перевірено для проєкту. Серійне гасіння глайдерів та побудова складніших вентилів інверсією — відомі прийоми. Приклади таких прийомів опубліковано у [підручнику спільноти LifeWiki](https://conwaylife.com/wiki/Tutorials/General_technology). Для XNOR геометрію знайдено перебором взаємних положень і фаз трьох глайдерів; XOR використовує цю саму геометрію та додатковий інвертор. Готові сторонні файли пристроїв до цієї серії не копіювалися.
-
+The coordinates for these examples were constructed and verified for this project. The XNOR geometry came from a search over positions and phases of three gliders. XOR uses that geometry and adds an inverter. The [LifeWiki tutorial on signal technology](https://conwaylife.com/wiki/Tutorials/General_technology) describes related techniques for cancelling gliders and building gates.

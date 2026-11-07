@@ -6,6 +6,7 @@ import importlib.util
 import json
 import os
 from pathlib import Path
+import re
 import subprocess
 import sys
 
@@ -256,6 +257,36 @@ def test_public_checkout_rejects_unreviewed_files_and_scans_generated_reports(tm
         publication.public_inventory(tmp_path, {'README.md'})
 
 
+def assert_english_catalog_text(value, location):
+    assert isinstance(value, str) and value.strip(), location
+    assert not re.search(r'[\u0400-\u052f]', value), location
+
+
+def test_canonical_device_logic_and_browser_catalogs_use_english():
+    """Check the data itself, including generator input and the API's fallback text."""
+    api = json.loads((ROOT / 'web/patterns.json').read_bytes())
+    devices = json.loads((ROOT / 'examples/devices/catalog.json').read_bytes())
+    by_id = {entry['id']: entry for entry in api}
+    assert by_id['blinker-puffer']['name'] == 'Blinker factory'
+    assert by_id['block-laying-switch-engine']['name'] == 'Moving block factory'
+    for filename, records in (('examples/devices/catalog.json', devices), ('web/patterns.json', api)):
+        for entry in records:
+            location = f"{filename} / {entry['id']} / "
+            for field in ('name', 'type', 'note', 'description', 'search'):
+                if field in entry or field in ('name', 'type', 'note'):
+                    assert_english_catalog_text(entry[field], location + field)
+            if 'demo' in entry:
+                assert_english_catalog_text(entry['demo']['observation'], location + 'demo.observation')
+    for device in devices:
+        generated = by_id[device['id']]
+        assert {key: generated[key] for key in device} == device, device['id']
+
+    logic = json.loads((ROOT / 'examples/logic/extended-truth-tables.json').read_bytes())
+    for entry in logic['demos']:
+        for field in ('label', 'description'):
+            assert_english_catalog_text(entry[field], f"extended-truth-tables.json / {entry['id']} / {field}")
+
+
 def test_public_data_filters_every_catalog_and_preserves_source_cells(tmp_path):
     before = (ROOT / 'web/patterns.json').read_bytes()
     files, audit = publication.load_payload(ROOT)
@@ -268,7 +299,10 @@ def test_public_data_filters_every_catalog_and_preserves_source_cells(tmp_path):
     assert all(p == source[p['id']] for p in entries)
     assert (ROOT / 'web/patterns.json').read_bytes() == before
     assert set(policy['excluded_pattern_ids']).isdisjoint(p['id'] for p in entries)
-    assert len(json.loads(files['examples/devices/catalog.json'])) == 2
+    device_catalog = json.loads(files['examples/devices/catalog.json'])
+    assert {p['id'] for p in device_catalog} == {'blinker-puffer', 'block-laying-switch-engine'}
+    source_devices = json.loads((ROOT / 'examples/devices/catalog.json').read_bytes())
+    assert device_catalog == [p for p in source_devices if p['id'] in policy['allowed_pattern_ids']]
     assert len(json.loads(files['tests/fixtures/devices-validation.json'])['devices']) == 0
     assert len(json.loads(files['tests/fixtures/fast-machines-validation.json'])['devices']) == 2
     assert 'measured_seconds' not in files['tests/fixtures/fast-machines-validation.json'].decode()
@@ -289,7 +323,25 @@ def test_public_data_filters_every_catalog_and_preserves_source_cells(tmp_path):
     _, rechecked = publication.load_payload(target)
     assert rechecked['findings'] == []
     # Rebuild generated data from published sources to prove the filter is durable.
-    expected = json.loads((target / 'web/patterns.json').read_text('utf-8'))
+    generated_catalogs = ('web/patterns.json', 'web/device-library.js')
     subprocess.run([sys.executable, 'examples/devices/build_catalog.py'], cwd=target, check=True,
                    capture_output=True, text=True)
-    assert json.loads((target / 'web/patterns.json').read_text('utf-8')) == expected
+    for name in generated_catalogs:
+        assert (target / name).read_bytes() == files[name], name
+
+
+def test_export_check_rejects_localized_demo_text_in_canonical_device_source(tmp_path, monkeypatch, capsys):
+    files, report = publication.load_payload(ROOT)
+    public = publication.write_fresh(tmp_path, 'dist/public', files, report)
+    monkeypatch.setattr(publication, 'ROOT', public)
+    assert publication.main(['--check']) == 0
+    source = public / 'examples/devices/catalog.json'
+    devices = json.loads(source.read_bytes())
+    device = next(p for p in devices if p['id'] == 'blinker-puffer')
+    device['demo']['observation'] = '\u0417\u0430\u043b\u0438\u0448\u0438\u043b\u043e\u0441\u044f 16 \u0431\u043b\u0456\u043d\u043a\u0435\u0440\u0456\u0432.'
+    # JSON escape sequences represent the same visible text on a data client.
+    source.write_text(json.dumps(devices, ensure_ascii=True), encoding='utf-8')
+    assert publication.main(['--check']) == 1
+    error = capsys.readouterr().err
+    assert 'examples/devices/catalog.json' in error
+    assert 'blinker-puffer.demo.observation' in error
