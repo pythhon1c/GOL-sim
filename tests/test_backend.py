@@ -554,7 +554,7 @@ def test_cpu_pacing_includes_controller_work_on_small_fields(small_sim, monkeypa
     # Generation timings must still advance when the checkpoint clock stands still.
     checkpoint_tick = time.monotonic()
     monkeypatch.setattr(runtime, "time", SimpleNamespace(monotonic=lambda: checkpoint_tick,
-                                                        perf_counter=time.perf_counter))
+                                                        perf_counter=time.perf_counter, sleep=time.sleep))
     real_stats = simulation.engine.stats
     samples = []
     def delayed_stats():
@@ -577,7 +577,8 @@ def test_checkpoint_io_fulfills_elapsed_generation_pacing(small_sim, monkeypatch
                               "checkpoints": {"every_generations": 1, "min_interval_seconds": 0}})
     elapsed_io = 0.0
     monkeypatch.setattr(runtime, "time", SimpleNamespace(monotonic=time.monotonic,
-                                                        perf_counter=lambda: time.perf_counter() + elapsed_io))
+                                                        perf_counter=lambda: time.perf_counter() + elapsed_io,
+                                                        sleep=time.sleep))
     real_write = simulation.checkpoints.write
     def paced_write(*args):
         nonlocal elapsed_io
@@ -588,3 +589,73 @@ def test_checkpoint_io_fulfills_elapsed_generation_pacing(small_sim, monkeypatch
     simulation.control("step", 2)
     wait_status(simulation, lambda s: s["checkpoint"]["last"] and s["checkpoint"]["last"]["generation"] == 2)
     assert elapsed_io == 120
+
+
+@pytest.mark.parametrize("rate", [0, 1000])
+def test_short_cpu_waits_accumulate_while_explicit_rate_caps_each_step(small_sim, monkeypatch, rate):
+    import life.runtime as runtime
+    sim = small_sim
+    sim.update_config({"engine": {"cpu_max_percent": 90, "max_generations_per_second": rate}})
+    now = 1.0
+    starts, sleeps = [], []
+    work = 0.0001
+    native_step = sim.engine.step
+    def measured_step():
+        nonlocal now
+        starts.append(now)
+        now += work
+        return native_step()
+    def precise_sleep(seconds):
+        nonlocal now
+        sleeps.append(seconds)
+        now += seconds
+    monkeypatch.setattr(runtime, "CPU_BATCH_SECONDS", 0.002)
+    monkeypatch.setattr(runtime, "SHORT_WAIT_SECONDS", 0.016)
+    monkeypatch.setattr(runtime, "time", SimpleNamespace(monotonic=time.monotonic,
+                                                        perf_counter=lambda: now, sleep=precise_sleep))
+    monkeypatch.setattr(sim.engine, "step", measured_step)
+    sim.control("step", 500)
+    wait_status(sim, lambda s: s["generation"] == 500)
+    assert len(starts) == 500
+    if rate:
+        assert len(sleeps) == 499
+        assert all(later - earlier == pytest.approx(1 / rate, abs=1e-9)
+                   for earlier, later in zip(starts, starts[1:]))
+    else:
+        assert 1 <= len(sleeps) <= 3
+        # At most one unspent 2 ms batch (and the final step) is outstanding.
+        desired_idle = len(starts) * work / 9
+        assert 0 <= desired_idle - sum(sleeps) <= 0.002 + work
+
+
+@pytest.mark.parametrize("action", ["pause", "new", "close"])
+def test_short_sleep_releases_field_and_rechecks_controls(small_sim, monkeypatch, action):
+    import life.runtime as runtime
+    sim = small_sim
+    sim.update_config({"engine": {"max_generations_per_second": 100}})
+    entered, release = threading.Event(), threading.Event()
+    def gated_sleep(delay):
+        assert 0 < delay <= 0.016
+        entered.set()
+        assert release.wait(3)
+    monkeypatch.setattr(runtime, "SHORT_WAIT_SECONDS", 0.016)
+    monkeypatch.setattr(runtime, "time", SimpleNamespace(monotonic=time.monotonic,
+                                                        perf_counter=lambda: 1.0, sleep=gated_sleep))
+    sim.control("step", 2)
+    assert entered.wait(2)
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        try:
+            if action == "pause":
+                assert pool.submit(sim.control, "pause").result(timeout=1)["generation"] == 1
+            elif action == "new":
+                assert pool.submit(sim.new, {"width": 23, "height": 17}).result(timeout=1)["generation"] == 0
+            else:
+                closing = pool.submit(sim.close)
+                wait_status(sim, lambda s: s["stage"] == "closed", timeout=1)
+        finally:
+            release.set()
+        if action == "close":
+            closing.result(timeout=2)
+    status = sim.status()
+    assert status["generation"] == (0 if action == "new" else 1)
+    assert not status["pending_steps"] and not status["running"]

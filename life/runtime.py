@@ -5,6 +5,7 @@ import copy
 from collections import deque
 from contextlib import contextmanager
 import json
+import os
 from pathlib import Path
 import threading
 import time
@@ -16,6 +17,11 @@ from .checkpoint import Checkpoints, checkpoint_metadata, load_checkpoint_into
 from .config import CYCLE_KEYS, cycle_settings, integer, merge_config, number, random_rectangle, resolved_engine, seed_value, validate_grid
 from .formats import MAX_IMPORT_CELLS, State, parse_json_data, parse_state
 from .native import NativeEngine, ROOT
+
+# Windows condition timeouts can round up to a full scheduler tick. Batch small
+# CPU-only sleeps and use a high-resolution timer for the final part of a wait.
+CPU_BATCH_SECONDS = 0.002 if os.name == "nt" else 0.0
+SHORT_WAIT_SECONDS = 0.016 if os.name == "nt" else 0.0
 
 
 class Simulation:
@@ -47,6 +53,7 @@ class Simulation:
         self.started_step = 0.0
         self.last_step_seconds = 0.0
         self.last_work_seconds = 0.0
+        self.cpu_deadline = 0.0
         self.completions = deque(maxlen=32)
         self.last_checkpoint = None
         self.checkpoint_error = None
@@ -130,6 +137,7 @@ class Simulation:
         self.checkpoint_started = time.monotonic()
         self.last_step_seconds = 0
         self.last_work_seconds = 0
+        self.cpu_deadline = 0.0
         self.completions.clear()
         self.running = False
         self.pending_steps = 0
@@ -335,8 +343,42 @@ class Simulation:
         cp = self.config["checkpoints"]
         return self.engine.generation - self.checkpoint_generation >= cp["every_generations"]
 
+    def _pacing_delay(self, rate):
+        if not self.completions:
+            return 0.0
+        now = time.perf_counter()
+        delay = self.cpu_deadline - now
+        if delay < CPU_BATCH_SECONDS:
+            delay = 0.0
+        # An explicit rate limits each generation even when CPU waits are batched.
+        return max(delay, self.started_step + 1 / rate - now) if rate else delay
+
+    def _step_locked(self, engine_config, checkpoints):
+        self.stage = "stepping"
+        self.started_step = time.perf_counter()
+        self._publish_status()
+        self.engine.step()
+        completed = time.perf_counter()
+        self.last_step_seconds = completed - self.started_step
+        self.completions.append(completed)
+        if self.pending_steps:
+            self.pending_steps -= 1
+        self.stage = "idle"
+        self._refresh()
+        budget = engine_config["memory_mb"]
+        over_budget = budget != "auto" and self.process.memory_info().rss > budget << 20
+        self.last_work_seconds = time.perf_counter() - self.started_step
+        # Outstanding CPU idle time carries between steps. Time spent at a checkpoint
+        # or with the world paused pays down that balance without charging extra work.
+        self.cpu_deadline = max(self.started_step, self.cpu_deadline) + self.last_work_seconds * (100 / engine_config["cpu_max_percent"])
+        if self._checkpoint_due() and time.monotonic() - self.checkpoint_started >= checkpoints["min_interval_seconds"]:
+            self._save_locked()
+        if over_budget:
+            raise RuntimeError("Process memory budget reached; simulation paused with its last complete generation preserved")
+
     def _loop(self):
         while True:
+            short_wait = 0.0
             with self.changed:
                 if self.stop_event.is_set():
                     return
@@ -368,33 +410,13 @@ class Simulation:
                         self.changed.wait()
                         continue
                     engine_config = self.config["engine"]
-                    if self.completions:
-                        interval = self.last_work_seconds * (100 / engine_config["cpu_max_percent"])
-                        if rate := engine_config["max_generations_per_second"]:
-                            interval = max(interval, 1 / rate)
-                        remaining = self.started_step + interval - time.perf_counter()
-                        if remaining > 0:
-                            self.changed.wait(min(remaining, threading.TIMEOUT_MAX))
-                            continue
-                    self.stage = "stepping"
-                    self.started_step = time.perf_counter()
-                    self._publish_status()
-                    self.engine.step()
-                    completed = time.perf_counter()
-                    self.last_step_seconds = completed - self.started_step
-                    self.completions.append(completed)
-                    if self.pending_steps:
-                        self.pending_steps -= 1
-                    self.stage = "idle"
-                    self._refresh()
-                    budget = engine_config["memory_mb"]
-                    over_budget = budget != "auto" and self.process.memory_info().rss > budget << 20
-                    # Count controller work as active time. Checkpoint I/O occupies the pacing interval.
-                    self.last_work_seconds = time.perf_counter() - self.started_step
-                    if self._checkpoint_due() and time.monotonic() - self.checkpoint_started >= cp["min_interval_seconds"]:
-                        self._save_locked()
-                    if over_budget:
-                        raise RuntimeError("Process memory budget reached; simulation paused with its last complete generation preserved")
+                    remaining = self._pacing_delay(engine_config["max_generations_per_second"])
+                    if remaining > SHORT_WAIT_SECONDS:
+                        self.changed.wait(min(remaining - SHORT_WAIT_SECONDS, threading.TIMEOUT_MAX))
+                    elif remaining > 0:
+                        short_wait = remaining
+                    else:
+                        self._step_locked(engine_config, cp)
                 except Exception as exc:
                     self.error = str(exc)
                     if self.stage == "checkpoint":
@@ -403,6 +425,8 @@ class Simulation:
                     self.pending_steps = 0
                     self.stage = "error"
                     self._publish_status()
+            if short_wait:
+                time.sleep(short_wait)
 
     def viewport(self, x, y, width, height, scale, generation=None, run_id=None, layer="life", metadata_revision=None):
         integer(x, 0, 1_999_999_999, "x")
@@ -459,6 +483,9 @@ class Simulation:
                         raise RuntimeError("This native library does not support guarded cycles; rebuild it before enabling this feature")
                 else:
                     self.engine.configure_cycles(**cycle_settings(candidate))
+            percent = candidate["engine"]["cpu_max_percent"]
+            if percent != self.config["engine"]["cpu_max_percent"] and self.completions:
+                self.cpu_deadline = self.started_step + self.last_work_seconds * (100 / percent)
             self.config = candidate
             self.checkpoints = checkpoints
             if cycles_changed:

@@ -588,8 +588,8 @@
     },
     {
       "path": "life/runtime.py",
-      "bytes": 25449,
-      "sha256": "3bc0d93ab91b168bfb6ee2da1ff7fb10c148926538b650b5a5ceacf6b0991cfd"
+      "bytes": 26474,
+      "sha256": "5689b5eb087c99ce155e93d8861f652f9b35eda820c87ada09a831a3589552a5"
     },
     {
       "path": "life/server.py",
@@ -733,8 +733,8 @@
     },
     {
       "path": "tests/test_backend.py",
-      "bytes": 28130,
-      "sha256": "041728916756c924635007fb2966e50a46145d41cf9bf46e331aea388374cf8a"
+      "bytes": 31251,
+      "sha256": "0f562c9e16e0199500b79144e8e605858d90e1683bcc8c578f7b146dbab7211b"
     },
     {
       "path": "tests/test_config_ui.py",
