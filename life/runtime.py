@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import copy
 from collections import deque
+from contextlib import contextmanager
 import json
 from pathlib import Path
 import threading
@@ -12,8 +13,8 @@ import uuid
 import psutil
 
 from .checkpoint import Checkpoints, checkpoint_metadata, load_checkpoint_into
-from .config import CYCLE_KEYS, cycle_settings, integer, merge_config, random_rectangle, resolved_engine, seed_value, validate_grid
-from .formats import MAX_IMPORT_CELLS, State, parse_state
+from .config import CYCLE_KEYS, cycle_settings, integer, merge_config, number, random_rectangle, resolved_engine, seed_value, validate_grid
+from .formats import MAX_IMPORT_CELLS, State, parse_json_data, parse_state
 from .native import NativeEngine, ROOT
 
 
@@ -33,7 +34,9 @@ class Simulation:
         self.lock = threading.RLock()
         self.meta_lock = threading.Lock()
         self.progress_lock = threading.Lock()
-        self.wake = threading.Event()
+        self.changed = threading.Condition(self.lock)
+        self.waiting_requests = 0
+        self.handoff = None
         self.stop_event = threading.Event()
         self.running = False
         self.pending_steps = 0
@@ -43,6 +46,7 @@ class Simulation:
         self.stage = "idle"
         self.started_step = 0.0
         self.last_step_seconds = 0.0
+        self.last_work_seconds = 0.0
         self.completions = deque(maxlen=32)
         self.last_checkpoint = None
         self.checkpoint_error = None
@@ -74,7 +78,7 @@ class Simulation:
                 self._replace_state(state)
             else:
                 data = json.loads(path.read_text("utf-8"))
-                if data.get("format") == "exact-life-checkpoint":
+                if isinstance(data, dict) and data.get("format") == "exact-life-checkpoint":
                     metadata = checkpoint_metadata(path)
                     replacement = self._replacement(metadata["width"], metadata["height"], metadata["wrap"])
                     try:
@@ -84,7 +88,7 @@ class Simulation:
                         replacement.close()
                         raise
                 else:
-                    self._replace_state(parse_state(json.dumps(data), "json"))
+                    self._replace_state(parse_json_data(data))
         elif initial["random"]:
             rectangle = self._config_rectangle(initial.get("rectangle"))
             self.engine.randomize(initial["density"], initial["seed"], **rectangle)
@@ -125,9 +129,13 @@ class Simulation:
         self.checkpoint_generation = replacement.generation
         self.checkpoint_started = time.monotonic()
         self.last_step_seconds = 0
+        self.last_work_seconds = 0
         self.completions.clear()
+        self.running = False
         self.pending_steps = 0
         self.error = None
+        self.checkpoint_error = None
+        self.stage = "idle"
 
     def _replace_state(self, state: State):
         replacement = self._replacement(state.width, state.height, state.wrap)
@@ -140,17 +148,10 @@ class Simulation:
             raise
 
     def replace_state(self, state: State):
-        with self.lock:
-            was_running = self.running
-            self.running = False
-            try:
-                self._replace_state(state)
-                self.stage = "idle"
-                self._refresh()
-            except BaseException:
-                self.running = was_running
-                raise
-        return self.status()
+        with self.access():
+            self._replace_state(state)
+            self._refresh()
+            return self.status()
 
     def new(self, data: dict):
         width, height, wrap = data.get("width"), data.get("height"), data.get("wrap", False)
@@ -159,39 +160,38 @@ class Simulation:
         if not isinstance(cells, list) or len(cells) > MAX_IMPORT_CELLS:
             raise ValueError(f"At most {MAX_IMPORT_CELLS} explicit cells are accepted; use native randomization for dense fields")
         # Reuse strict parsing before creating or mutating any native state.
-        state = parse_state(json.dumps({"width": width, "height": height, "wrap": wrap, "cells": cells}), "json")
+        state = parse_json_data({"width": width, "height": height, "wrap": wrap, "cells": cells})
         random_spec = data.get("random")
-        if random_spec and cells:
+        if random_spec is not None and cells:
             raise ValueError("Choose explicit cells or random initialization")
         if random_spec is not None:
             if not isinstance(random_spec, dict):
                 raise ValueError("random must be an object")
             density, seed = random_spec.get("density", 0.15), random_spec.get("seed", 42)
-            if not isinstance(density, (int, float)) or not 0.01 <= density <= 0.99:
-                raise ValueError("density must be between 0.01 and 0.99")
+            number(density, 0.01, 0.99, "density")
             seed = seed_value(seed)
-            rect = random_spec.get("rect") or {"x": 0, "y": 0, "width": width, "height": height}
+            rect = random_spec.get("rect")
+            if rect is None:
+                rect = {"x": 0, "y": 0, "width": width, "height": height}
             if not isinstance(rect, dict) or set(rect) != {"x", "y", "width", "height"}:
                 raise ValueError("Random rect requires x,y,width,height")
             integer(rect["x"], 0, width - 1, "random x")
             integer(rect["y"], 0, height - 1, "random y")
             integer(rect["width"], 1, width - rect["x"], "random width")
             integer(rect["height"], 1, height - rect["y"], "random height")
-        with self.lock:
+        with self.access():
             replacement = self._replacement(width, height, wrap)
             try:
                 if random_spec is not None:
                     replacement.randomize(density, seed, **rect)
                 else:
                     replacement.import_cells(state.cells)
-                self.running = False
                 self._swap(replacement)
-                self.stage = "idle"
-                self._refresh()
             except BaseException:
                 replacement.close()
                 raise
-        return self.status()
+            self._refresh()
+            return self.status()
 
     def _refresh(self):
         stats = self.engine.stats()
@@ -225,73 +225,101 @@ class Simulation:
                                      "memory_limit": "estimated native allocations plus monitored process RSS; not an OS hard cap",
                                      "cpu_limit": "average cooperative duty-cycle limit",
                                      "disk_limit": "paced checkpoint writes and directory quota"}}
+        self._publish_status(snapshot)
+
+    def _publish_status(self, world=None):
+        """Publish control metadata and its committed generation in one assignment."""
+        completions = self.completions
+        rate = 0
+        if len(completions) > 1 and completions[-1] > completions[0]:
+            rate = (len(completions) - 1) / (completions[-1] - completions[0])
+        checkpoints = self.config["checkpoints"]
         with self.meta_lock:
-            self.snapshot = snapshot
+            self.snapshot = {
+                **(self.snapshot if world is None else world),
+                "running": self.running, "pending_steps": self.pending_steps, "stage": self.stage,
+                "generations_per_second": rate, "last_step_seconds": self.last_step_seconds,
+                "native_generations_per_second": 1 / self.last_step_seconds if self.last_step_seconds else 0,
+                "max_generations_per_second": self.config["engine"]["max_generations_per_second"],
+                "error": self.error, "_step_started": self.started_step,
+                "_checkpoint_allowed": self.checkpoint_started + checkpoints["min_interval_seconds"],
+                "checkpoint": {"last": self.last_checkpoint, "error": self.checkpoint_error,
+                               "next_generation": self.checkpoint_generation + checkpoints["every_generations"]},
+            }
 
     def status(self):
         with self.meta_lock:
             result = copy.deepcopy(self.snapshot)
+        started = result.pop("_step_started")
+        deadline = result.pop("_checkpoint_allowed")
         progress, eta = None, None
-        phase = self.stage
-        if self.stage == "stepping":
+        phase = result["stage"]
+        if phase == "stepping":
             with self.progress_lock:
                 engine = self.engine
-                if hasattr(engine, "progress"):
+                if (not self.stop_event.is_set() and result["run_id"] == self.run_id
+                        and started == self.started_step and hasattr(engine, "progress")):
                     completed, total, native_phase = engine.progress()
                     if total and native_phase == 2:
                         progress = min(1.0, completed / total)
-                        elapsed = time.monotonic() - self.started_step
+                        elapsed = time.perf_counter() - started
                         if completed:
                             eta = elapsed * (total - completed) / completed
-                    phase = {0: "idle", 1: "preparing", 2: "computing", 3: "committing"}.get(native_phase, self.stage)
+                    phase = {1: "preparing", 2: "computing", 3: "committing"}.get(native_phase, phase)
         rss = self.process.memory_info().rss
-        completions = list(self.completions)
-        observed_rate = (len(completions) - 1) / (completions[-1] - completions[0]) if len(completions) > 1 and completions[-1] > completions[0] else 0
-        result.update({"running": self.running, "pending_steps": self.pending_steps, "stage": phase,
-                       "progress": progress, "eta_seconds": eta, "eta_estimated": eta is not None,
-                       "generations_per_second": observed_rate,
-                       "native_generations_per_second": 1 / self.last_step_seconds if self.last_step_seconds else 0,
-                       "max_generations_per_second": self.config["engine"]["max_generations_per_second"],
-                       "last_step_seconds": self.last_step_seconds, "error": self.error,
+        result["checkpoint"]["seconds_until_write_allowed"] = max(0, deadline - time.monotonic())
+        result.update({"stage": phase, "progress": progress, "eta_seconds": eta, "eta_estimated": eta is not None,
                        "resources": {"process_id": self.process.pid, "rss_bytes": rss, "cpu_percent": self.process.cpu_percent() / (psutil.cpu_count() or 1),
-                                     "logical_cpus": psutil.cpu_count()},
-                       "checkpoint": {"last": self.last_checkpoint, "error": self.checkpoint_error,
-                                      "next_generation": self.checkpoint_generation + self.config["checkpoints"]["every_generations"],
-                                      "seconds_until_write_allowed": max(0, self.config["checkpoints"]["min_interval_seconds"] - (time.monotonic() - self.checkpoint_started))}})
+                                     "logical_cpus": psutil.cpu_count()}})
         return result
 
-    def control(self, action: str, steps: int = 1, generations_per_second: float = 0):
-        if action == "pause":
-            self.running = False
-            self.pending_steps = 0
-        elif action == "run":
-            self.error = None
-            self.running = True
-        elif action == "step":
-            integer(steps, 1, 10000, "steps")
-            self.running = False
-            self.error = None
-            self.pending_steps = steps
-        elif action == "speed":
-            if not isinstance(generations_per_second, (int, float)) or not 0 <= generations_per_second <= 1_000_000:
-                raise ValueError("generations_per_second must be from 0 (unlimited) through 1000000")
-            with self.lock:
+    def _require_version(self, run_id, generation):
+        if run_id is not None and run_id != self.run_id:
+            raise StaleGeneration("Requested world has been replaced")
+        if generation is not None:
+            integer(generation, 0, (1 << 64) - 1, "generation")
+            if generation != self.engine.generation:
+                raise StaleGeneration("Requested generation is no longer current")
+
+    def control(self, action: str, steps: int = 1, generations_per_second: float = 0,
+                run_id: str | None = None, generation: int | None = None):
+        with self.access():
+            self._require_version(run_id, generation)
+            if action == "pause":
+                self.running = False
+                self.pending_steps = 0
+            elif action == "run":
+                self.running = True
+                self.pending_steps = 0
+                self.error = None
+            elif action == "step":
+                integer(steps, 1, 10000, "steps")
+                self.running = False
+                self.pending_steps += steps
+                self.error = None
+            elif action == "speed":
+                number(generations_per_second, 0, 1_000_000, "generations_per_second")
                 self.config["engine"]["max_generations_per_second"] = generations_per_second
-        else:
-            raise ValueError("action must be run, pause, step, or speed")
-        self.wake.set()
-        return self.status()
+            else:
+                raise ValueError("action must be run, pause, step, or speed")
+            if self.stage == "error" and self.error is None:
+                self.stage = "idle"
+            self._publish_status()
+            return self.status()
 
     def _save_locked(self):
         self.stage = "checkpoint"
+        self._publish_status()
         self.last_checkpoint = self.checkpoints.write(self.engine, self.stop_event)
+        self.last_checkpoint["run_id"] = self.run_id
         self.checkpoint_started = time.monotonic()
         self.checkpoint_generation = self.engine.generation
         self.checkpoint_error = None
         self.stage = "idle"
+        self._publish_status()
 
     def checkpoint(self):
-        with self.lock:
+        with self.access():
             if self.last_checkpoint and time.monotonic() - self.checkpoint_started < self.config["checkpoints"]["min_interval_seconds"]:
                 raise ValueError("Minimum checkpoint interval has not elapsed")
             try:
@@ -299,74 +327,82 @@ class Simulation:
             except BaseException as exc:
                 self.checkpoint_error = str(exc)
                 self.stage = "idle"
+                self._publish_status()
                 raise
-        return self.last_checkpoint
+            return self.last_checkpoint.copy()
 
     def _checkpoint_due(self) -> bool:
         cp = self.config["checkpoints"]
         return self.engine.generation - self.checkpoint_generation >= cp["every_generations"]
 
     def _loop(self):
-        while not self.stop_event.is_set():
-            if not self.running and not self.pending_steps:
-                cp = self.config["checkpoints"]
-                with self.lock:
-                    checkpoint_due = cp["mode"] == "strict" and self.error is None and self._checkpoint_due()
-                if checkpoint_due:
-                    if time.monotonic() - self.checkpoint_started >= cp["min_interval_seconds"]:
-                        try:
-                            with self.lock:
-                                if self._checkpoint_due():
-                                    self._save_locked()
-                        except BaseException as exc:
-                            self.checkpoint_error = self.error = str(exc)
-                            self.stage = "error"
-                    else:
-                        self.stage = "waiting_for_checkpoint"
-                self.wake.wait(0.2)
-                self.wake.clear()
-                continue
-            started = time.monotonic()
-            try:
-                with self.lock:
-                    if not self.running and not self.pending_steps:
-                        continue
+        while True:
+            with self.changed:
+                if self.stop_event.is_set():
+                    return
+                if self.handoff == "worker":
+                    self.handoff = None
+                    self.changed.notify_all()
+                elif self.waiting_requests:
+                    # Yield one turn to a waiting request. Keep a busy stream of
+                    # readers from taking every subsequent generation boundary.
+                    self.handoff = "request"
+                    self.changed.wait_for(lambda: self.handoff != "request" or self.stop_event.is_set())
+                    continue
+                try:
+                    active = self.running or self.pending_steps > 0
                     cp = self.config["checkpoints"]
-                    if self._checkpoint_due():
+                    if self.error is None and self._checkpoint_due() and (active or cp["mode"] == "strict"):
                         remaining = cp["min_interval_seconds"] - (time.monotonic() - self.checkpoint_started)
                         if remaining <= 0:
                             self._save_locked()
                         elif cp["mode"] == "strict":
                             self.stage = "waiting_for_checkpoint"
-                            self.stop_event.wait(min(0.2, remaining))
+                            self._publish_status()
+                            self.changed.wait(min(remaining, threading.TIMEOUT_MAX))
+                            continue
+                    if self.stage == "waiting_for_checkpoint":
+                        self.stage = "idle"
+                        self._publish_status()
+                    if not active:
+                        self.changed.wait()
+                        continue
+                    engine_config = self.config["engine"]
+                    if self.completions:
+                        interval = self.last_work_seconds * (100 / engine_config["cpu_max_percent"])
+                        if rate := engine_config["max_generations_per_second"]:
+                            interval = max(interval, 1 / rate)
+                        remaining = self.started_step + interval - time.perf_counter()
+                        if remaining > 0:
+                            self.changed.wait(min(remaining, threading.TIMEOUT_MAX))
                             continue
                     self.stage = "stepping"
-                    self.started_step = time.monotonic()
+                    self.started_step = time.perf_counter()
+                    self._publish_status()
                     self.engine.step()
-                    self.last_step_seconds = time.monotonic() - self.started_step
-                    self.completions.append(time.monotonic())
+                    completed = time.perf_counter()
+                    self.last_step_seconds = completed - self.started_step
+                    self.completions.append(completed)
                     if self.pending_steps:
                         self.pending_steps -= 1
                     self.stage = "idle"
                     self._refresh()
+                    budget = engine_config["memory_mb"]
+                    over_budget = budget != "auto" and self.process.memory_info().rss > budget << 20
+                    # Count controller work as active time. Checkpoint I/O occupies the pacing interval.
+                    self.last_work_seconds = time.perf_counter() - self.started_step
                     if self._checkpoint_due() and time.monotonic() - self.checkpoint_started >= cp["min_interval_seconds"]:
                         self._save_locked()
-                budget = self.config["engine"]["memory_mb"]
-                if budget != "auto" and self.process.memory_info().rss > budget << 20:
-                    raise RuntimeError("Process memory budget reached; simulation paused with its last complete generation preserved")
-                throttle = (time.monotonic() - started) * (100 / self.config["engine"]["cpu_max_percent"] - 1)
-                rate = self.config["engine"]["max_generations_per_second"]
-                if rate:
-                    throttle = max(throttle, 1 / rate - (time.monotonic() - started))
-                self.wake.wait(max(0, throttle))
-                self.wake.clear()
-            except BaseException as exc:
-                self.error = str(exc)
-                if self.stage == "checkpoint":
-                    self.checkpoint_error = str(exc)
-                self.running = False
-                self.pending_steps = 0
-                self.stage = "error"
+                    if over_budget:
+                        raise RuntimeError("Process memory budget reached; simulation paused with its last complete generation preserved")
+                except Exception as exc:
+                    self.error = str(exc)
+                    if self.stage == "checkpoint":
+                        self.checkpoint_error = str(exc)
+                    self.running = False
+                    self.pending_steps = 0
+                    self.stage = "error"
+                    self._publish_status()
 
     def viewport(self, x, y, width, height, scale, generation=None, run_id=None, layer="life", metadata_revision=None):
         integer(x, 0, 1_999_999_999, "x")
@@ -384,20 +420,17 @@ class Simulation:
         limit = 524_288 if layer == "cycles" else 2_097_152
         if columns * rows > limit:
             raise ValueError(f"Viewport exceeds {limit:,} {layer} bins; increase scale")
-        with self.lock:
-            if run_id is not None and run_id != self.run_id:
-                raise StaleGeneration("Requested world has been replaced")
-            if generation is not None and generation != self.engine.generation:
-                raise StaleGeneration("Requested generation is no longer current")
+        with self.access():
+            self._require_version(run_id, generation)
             if metadata_revision is not None and metadata_revision != self.metadata_revision:
                 raise StaleGeneration("Requested cycle metadata has changed")
             if x >= self.engine.width or y >= self.engine.height:
                 raise ValueError("Viewport origin is outside the field")
             cycles = None
             if layer == "cycles":
-                counts, cycles = self.engine.render_cycles(x, y, columns, rows, scale)
+                counts, cycles = self.engine.render_cycles(x, y, columns, rows, scale, extent=(width, height))
             else:
-                counts = self.engine.render(x, y, columns, rows, scale)
+                counts = self.engine.render(x, y, columns, rows, scale, extent=(width, height))
             result = {"generation": self.engine.generation, "population": self.engine.population, "run_id": self.run_id,
                     "metadata_revision": self.metadata_revision, "layer": layer,
                     "x": x, "y": y, "width": width, "height": height, "scale": scale,
@@ -407,7 +440,7 @@ class Simulation:
             return result
 
     def update_config(self, update: dict):
-        with self.lock:
+        with self.access():
             # Validate and commit against one generation/world/config version. A concurrent
             # New/Import must never have its grid settings overwritten by a stale candidate.
             candidate = merge_config(update, self.config, validate_initial_bounds=False)
@@ -431,13 +464,37 @@ class Simulation:
             if cycles_changed:
                 self.metadata_revision += 1
                 self._refresh()
+            else:
+                self._publish_status()
             return copy.deepcopy(self.config)
 
+    @contextmanager
+    def access(self):
+        """A waiting API operation gets the field at a generation boundary."""
+        with self.meta_lock:
+            self.waiting_requests += 1
+        with self.changed:
+            while self.handoff == "worker" and not self.stop_event.is_set():
+                self.changed.wait()
+            with self.meta_lock:
+                self.waiting_requests -= 1
+            try:
+                if self.stop_event.is_set():
+                    raise RuntimeError("Simulation is closed")
+                yield
+            finally:
+                if self.handoff == "request":
+                    self.handoff = "worker"
+                self.changed.notify_all()
+
     def close(self):
-        self.running = False
-        self.pending_steps = 0
         self.stop_event.set()
-        self.wake.set()
+        with self.changed:
+            self.running = False
+            self.pending_steps = 0
+            self.stage = "closed"
+            self._publish_status()
+            self.changed.notify_all()
         self.thread.join()
         with self.lock, self.progress_lock:
             self.engine.close()

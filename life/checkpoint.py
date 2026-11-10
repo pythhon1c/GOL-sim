@@ -37,11 +37,13 @@ class Checkpoints:
     def _owned(self):
         snapshots = []
         for manifest in self.directory.glob("life-*.json"):
-            if not NAME.fullmatch(manifest.stem):
+            if not NAME.fullmatch(manifest.stem) or manifest.is_symlink():
                 continue
             try:
+                if manifest.stat().st_size > 16 << 20:
+                    continue
                 data = json.loads(manifest.read_text("utf-8"))
-                if data.get("format") != FORMAT or data.get("id") != manifest.stem:
+                if not isinstance(data, dict) or data.get("format") != FORMAT or data.get("id") != manifest.stem:
                     continue
                 paths = [manifest]
                 seen = set()
@@ -70,6 +72,8 @@ class Checkpoints:
                    if pattern.fullmatch(path.name) and path.is_file() and not path.is_symlink())
 
     def write(self, engine, cancel_event=None) -> dict:
+        if cancel_event is not None and cancel_event.is_set():
+            raise RuntimeError("Checkpoint cancelled during shutdown")
         quota = self.config["quota_mb"] << 20
         segment_limit = self.config["segment_mb"] << 20
         raw_limit = ((segment_limit - max(65536, segment_limit // 100)) // 8) * 8
@@ -105,6 +109,8 @@ class Checkpoints:
                 with temporary.open("wb") as raw:
                     with gzip.GzipFile(fileobj=raw, mode="wb", compresslevel=1, mtime=0) as stream:
                         while segment_cells * 8 < raw_limit and emitted < count:
+                            if cancel_event is not None and cancel_event.is_set():
+                                raise RuntimeError("Checkpoint cancelled during shutdown")
                             n = min(8192, (raw_limit - segment_cells * 8) // 8, count - emitted)
                             values = [next(iterator) for _ in range(n)]
                             stream.write(struct.pack("<" + "Q" * n, *values))
@@ -152,15 +158,33 @@ def checkpoint_metadata(path: Path) -> dict:
     if path.stat().st_size > 16 << 20:
         raise ValueError("Checkpoint manifest is too large")
     data = json.loads(path.read_text("utf-8"))
-    if data.get("format") != FORMAT or data.get("version") != 1 or data.get("encoding") != "uint64-le-y32-x32-gzip":
+    if (not isinstance(data, dict) or data.get("format") != FORMAT
+            or type(data.get("version")) is not int or data["version"] != 1
+            or data.get("encoding") != "uint64-le-y32-x32-gzip"):
         raise ValueError("Unsupported checkpoint manifest")
+    integer(data.get("coordinate_base", 0), 0, 0, "coordinate_base")
     check_rule(data.get("rule"))
     validate_grid(data.get("width"), data.get("height"), data.get("wrap"))
     integer(data.get("generation"), 0, (1 << 64) - 1, "generation")
     integer(data.get("population"), 0, data["width"] * data["height"], "population")
     if not isinstance(data.get("segments"), list) or len(data["segments"]) > 1_000_000:
         raise ValueError("Invalid checkpoint segments")
-    if sum(part.get("cells", -1) for part in data["segments"]) != data["population"]:
+    count = 0
+    names = set()
+    for part in data["segments"]:
+        if not isinstance(part, dict):
+            raise ValueError("Invalid checkpoint segment")
+        name = part.get("file")
+        if not isinstance(name, str) or not name or Path(name).name != name or "/" in name or "\\" in name:
+            raise ValueError("Unsafe checkpoint segment path")
+        if name in names:
+            raise ValueError("Duplicate checkpoint segment")
+        names.add(name)
+        if not isinstance(part.get("sha256"), str) or not re.fullmatch(r"[a-f0-9]{64}", part["sha256"]):
+            raise ValueError("Invalid checkpoint segment checksum")
+        integer(part.get("bytes"), 1, (1 << 64) - 1, "segment bytes")
+        count += integer(part.get("cells"), 0, data["population"], "segment cells")
+    if count != data["population"]:
         raise ValueError("Checkpoint population metadata mismatch")
     return data
 

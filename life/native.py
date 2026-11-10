@@ -1,6 +1,7 @@
 """Small ctypes binding; all authoritative cells live in the native engine."""
 from __future__ import annotations
 
+from array import array
 import ctypes as C
 import os
 from pathlib import Path
@@ -52,6 +53,7 @@ def load_library() -> C.CDLL:
                                 C.POINTER(C.c_uint64), C.POINTER(C.c_uint64), C.POINTER(C.c_double),
                                 C.POINTER(C.c_uint32)], C.c_uint8),
     }
+    optional["life_render_region"] = optional["life_render_cycles"]
     for name, (args, result) in {**specs, **optional}.items():
         if name in optional and not hasattr(lib, name):
             continue
@@ -109,9 +111,9 @@ class NativeEngine:
         return result
 
     def import_packed(self, values: Iterable[int]) -> None:
-        items = list(values)
-        data = (C.c_uint64 * len(items))(*items)
-        self._check(self.lib.life_import_cells(self.handle, data, len(items)))
+        packed = array("Q", iter(values))
+        data = (C.c_uint64 * len(packed)).from_buffer(packed)
+        self._check(self.lib.life_import_cells(self.handle, data, len(packed)))
 
     def import_cells(self, cells: Iterable[tuple[int, int]]) -> None:
         batch = []
@@ -126,8 +128,13 @@ class NativeEngine:
             self.import_packed(batch)
 
     def iter_packed(self, batch_size: int = 65536):
+        if batch_size < 1:
+            raise ValueError("Export batch size must be positive")
         population = self.population
+        if not population:
+            return
         if hasattr(self.lib, "life_export_range"):
+            batch_size = min(batch_size, population)
             buffer = (C.c_uint64 * batch_size)()
             offset = 0
             while offset < population:
@@ -155,9 +162,26 @@ class NativeEngine:
         from .config import seed_value
         self._check(self.lib.life_randomize(self.handle, x, y, width, height, density, seed_value(seed)))
 
-    def render(self, x: int, y: int, columns: int, rows: int, scale: int) -> list[int]:
+    def _render_buffers(self, x, y, columns, rows, scale, extent, counts, *cycle_buffers):
+        if extent is not None:
+            width, height = extent
+            if not (0 < scale <= 0xFFFFFFFF and 0 <= width <= 0xFFFFFFFF and 0 <= height <= 0xFFFFFFFF):
+                raise ValueError("Invalid viewport extent or scale")
+            expected_bins = ((width + scale - 1) // scale, (height + scale - 1) // scale)
+            if expected_bins != (columns, rows):
+                raise ValueError("Viewport extent does not match its output dimensions")
+            if hasattr(self.lib, "life_render_region"):
+                self._check(self.lib.life_render_region(self.handle, x, y, width, height, scale, counts,
+                                                        *(cycle_buffers or (None, None, None))))
+                return
+            if ((width % scale and x + width < self.width) or (height % scale and y + height < self.height)):
+                raise RuntimeError("Rebuild the native engine to render partially visible bins")
+        render = self.lib.life_render_cycles if cycle_buffers else self.lib.life_render
+        self._check(render(self.handle, x, y, columns, rows, scale, counts, *cycle_buffers))
+
+    def render(self, x: int, y: int, columns: int, rows: int, scale: int, *, extent=None) -> list[int]:
         data = (C.c_uint64 * (columns * rows))()
-        self._check(self.lib.life_render(self.handle, x, y, columns, rows, scale, data))
+        self._render_buffers(x, y, columns, rows, scale, extent, data)
         return list(data)
 
     @property
@@ -187,7 +211,7 @@ class NativeEngine:
         return {name: int(self.lib.life_cluster_info(self.handle, tile_x, tile_y, code))
                 for code, name in enumerate(names)}
 
-    def render_cycles(self, x: int, y: int, columns: int, rows: int, scale: int) -> tuple[list[int], dict]:
+    def render_cycles(self, x: int, y: int, columns: int, rows: int, scale: int, *, extent=None) -> tuple[list[int], dict]:
         if not self.supports_cycles:
             raise RuntimeError("Guarded cycle metadata is unavailable; rebuild the native engine")
         count = columns * rows
@@ -195,8 +219,7 @@ class NativeEngine:
         known_live = (C.c_uint64 * count)()
         logarithms = (C.c_double * count)()
         periods = (C.c_uint32 * count)()
-        self._check(self.lib.life_render_cycles(self.handle, x, y, columns, rows, scale,
-                                                counts, known_live, logarithms, periods))
+        self._render_buffers(x, y, columns, rows, scale, extent, counts, known_live, logarithms, periods)
         return list(counts), {"known_live": list(known_live), "period_log2_sum": list(logarithms),
                               "period_max": list(periods), "period_reference": 64,
                               "weighting": "live_population", "unknown_period": 0}

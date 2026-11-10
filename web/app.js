@@ -383,7 +383,6 @@
         state.initialFit = true;
         setMode("editor");
         if (e.message.includes(T("token"))) toast(e.message, true);
-        else showDialog("newDialog");
       }
       updateRun();
     } finally {
@@ -420,7 +419,7 @@
     state.mode = mode;
     if (mode === "editor" && !editorStarted) {
       editorStarted = true;
-      setTimeout(() => showDialog("newDialog"), 50);
+      showDialog("newDialog");
     }
     state.selection = null;
     state.paste = null;
@@ -533,9 +532,9 @@
   function fitBounds() {
     const b = state.grid.bounds();
     if (!b.width) return fitWorld();
-    state.view.zoom = Math.min(
-      20,
-      Math.min((state.width - 110) / b.width, (state.height - 100) / b.height),
+    state.view.zoom = Math.max(
+      0.0000001,
+      Math.min(20, (state.width - 110) / b.width, (state.height - 100) / b.height),
     );
     state.view.x = b.x + (b.width - state.width / state.view.zoom) / 2;
     state.view.y = b.y + (b.height - state.height / state.view.zoom) / 2;
@@ -569,39 +568,8 @@
     return pixelCell(e.clientX - r.left, e.clientY - r.top);
   }
   function viewportSpec() {
-    const w = world(),
-      v = state.view;
-    let scale =
-      2 ** Math.max(0, Math.ceil(Math.log2(1 / Math.max(v.zoom, 0.0000001))));
-    let x, y, right, bottom;
-    do {
-      x = Math.max(0, Math.floor(v.x / scale) * scale);
-      y = Math.max(0, Math.floor(v.y / scale) * scale);
-      right = Math.min(
-        w.width,
-        Math.ceil((v.x + state.width / v.zoom) / scale) * scale,
-      );
-      bottom = Math.min(
-        w.height,
-        Math.ceil((v.y + state.height / v.zoom) / scale) * scale,
-      );
-      if (
-        Math.ceil(Math.max(0, right - x) / scale) *
-          Math.ceil(Math.max(0, bottom - y) / scale) <=
-        (state.mode === "monitor" && state.layer === "cycles"
-          ? 350000
-          : 1500000)
-      )
-        break;
-      scale *= 2;
-    } while (scale <= 2 ** 31);
-    return {
-      x,
-      y,
-      width: Math.max(0, right - x),
-      height: Math.max(0, bottom - y),
-      scale,
-    };
+    const maxBins = state.mode === "monitor" && state.layer === "cycles" ? 350000 : 1500000;
+    return C.viewportRegion(world(), state.view, state.width, state.height, maxBins);
   }
   async function requestViewport() {
     if (state.mode !== "monitor" || !state.connected) return;
@@ -859,31 +827,11 @@
         p.previewGrid = new C.SparseGrid(p.width, p.height);
         for (const [x, y] of p.cells) p.previewGrid.set(x, y, 1);
       }
-      const scale =
-          2 **
-          Math.max(0, Math.ceil(Math.log2(1 / Math.max(v.zoom, 0.0000001)))),
-        px0 = Math.max(0, Math.floor((v.x - state.cursor.x) / scale) * scale),
-        py0 = Math.max(0, Math.floor((v.y - state.cursor.y) / scale) * scale),
-        pw = Math.max(
-          0,
-          Math.min(
-            p.width,
-            Math.ceil((v.x + sw / v.zoom - state.cursor.x) / scale) * scale,
-          ) - px0,
-        ),
-        ph = Math.max(
-          0,
-          Math.min(
-            p.height,
-            Math.ceil((v.y + sh / v.zoom - state.cursor.y) / scale) * scale,
-          ) - py0,
-        );
-      if (pw && ph) {
-        const preview = C.aggregate(
-          p.previewGrid,
-          { x: px0, y: py0, width: pw, height: ph },
-          scale,
-        );
+      const previewView = { x: v.x - state.cursor.x, y: v.y - state.cursor.y, zoom: v.zoom };
+      const region = C.viewportRegion(p, previewView, sw, sh);
+      if (region.width && region.height) {
+        const { x: px0, y: py0, scale } = region;
+        const preview = C.aggregate(p.previewGrid, region, scale);
         for (let r = 0; r < preview.rows; r++)
           for (let c = 0; c < preview.columns; c++)
             if (preview.counts[r * preview.columns + c])
@@ -1337,6 +1285,29 @@
       );
     return { x: Number(m[1]) - 1, y: Number(m[2]) - 1 };
   }
+  // This function is serialized into the offline Blob worker alongside createLifeCore.
+  function fieldWorker() {
+    const core = createLifeCore();
+    self.onmessage = ({ data: { action, data } }) => {
+      try {
+        let result;
+        if (action === "random") {
+          const progress = (value) => self.postMessage({ progress: value });
+          const grid = core.randomGrid(data.width, data.height, data.rect, data.density, data.seed, progress);
+          result = { grid };
+        } else if (action === "json") {
+          result = core.parseStateJSON(data.text);
+        } else {
+          result = core.parseRLE(data.text, { restoreField: data.restoreField });
+        }
+        const grid = result.grid.packed();
+        const { placed, width, height } = result;
+        self.postMessage({ done: true, grid, placed, width, height }, grid.tiles.map(([, buffer]) => buffer));
+      } catch (error) {
+        self.postMessage({ error: error.message });
+      }
+    };
+  }
   async function runWorker(action, data) {
     if (
       action === "random" &&
@@ -1353,11 +1324,7 @@
       0.05,
     );
     if (state.worker) state.worker.terminate();
-    const source =
-      I.workerSource() +
-      "const C=(" +
-      createLifeCore.toString() +
-      ')();self.onmessage=function(e){try{const {action,data}=e.data;let result;if(action==="random"){result={grid:C.randomGrid(data.width,data.height,data.rect,data.density,data.seed,p=>self.postMessage({progress:p}))};}else if(action==="json"){result=C.parseStateJSON(data.text);}else{result=C.parseRLE(data.text);}const packed=result.grid.packed();self.postMessage({done:true,grid:packed,metadata:result.metadata,width:result.width,height:result.height},packed.tiles.map(t=>t[1]));}catch(e){self.postMessage({error:e.message});}}';
+    const source = [I.workerSource(), createLifeCore.toString(), "(" + fieldWorker.toString() + ")();"].join("\n");
     const url = URL.createObjectURL(
       new Blob([source], { type: "application/javascript" }),
     );
@@ -1427,42 +1394,29 @@
       return;
     }
     const parsed = await runWorker(format === "json" ? "json" : "rle", {
-      text,
+      text, restoreField: true,
     });
-    if (format === "json") {
+    if (format === "json" || parsed.placed) {
       resetEditor(parsed.grid);
-      fitWorld();
+      if (parsed.placed) fitBounds();
+      else fitWorld();
     } else {
-      const m = parsed.metadata || {};
-      if (m.width && m.height) {
-        const grid = new C.SparseGrid(m.width, m.height, !!m.wrap),
-          ox = m.origin_x || 0,
-          oy = m.origin_y || 0;
-        for (const [x, y] of parsed.grid.cells()) {
-          if (!grid.inside(x + ox, y + oy))
-            throw Error(T("The RLE position extends beyond the field."));
-          grid.set(x + ox, y + oy, 1);
-        }
-        resetEditor(grid);
-        fitBounds();
-      } else {
-        state.clipboard = {
-          width: parsed.width,
-          height: parsed.height,
-          cells: Array.from(parsed.grid.cells()),
-        };
-        if (
-          parsed.width > state.grid.width ||
-          parsed.height > state.grid.height
-        ) {
-          expandEditor(
-            Math.max(state.grid.width, parsed.width + 64),
-            Math.max(state.grid.height, parsed.height + 64),
-          );
-          fitWorld();
-        }
-        startPaste();
+      state.clipboard = {
+        width: parsed.grid.width,
+        height: parsed.grid.height,
+        previewGrid: parsed.grid,
+      };
+      if (
+        parsed.width > state.grid.width ||
+        parsed.height > state.grid.height
+      ) {
+        expandEditor(
+          Math.max(state.grid.width, parsed.width),
+          Math.max(state.grid.height, parsed.height),
+        );
+        fitWorld();
       }
+      startPaste();
     }
     toast(
       format === "json"
@@ -1487,6 +1441,11 @@
   $("monitorMode").onclick = () => setMode("monitor");
   $("editorMode").onclick = () => setMode("editor");
   $("newButton").onclick = () => showDialog("newDialog");
+  $("newForm").elements.wrap.onchange = (event) => {
+    const minimum = event.target.checked ? "3" : "1";
+    $("newForm").elements.width.min = minimum;
+    $("newForm").elements.height.min = minimum;
+  };
   $("emptyPatterns").onclick = $("patternsButton").onclick = () => {
     renderPatterns();
     showDialog("patternsDialog");
@@ -1772,12 +1731,12 @@
   $("fileInput").onchange = safe(async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    e.target.value = "";
     if (file.size > 256 * 1048576)
       throw Error(
-        T("The file exceeds 256 MB. Use the server's initial.path setting."),
+        T("The file exceeds the editor's 256 MiB input limit."),
       );
     const text = await file.text();
-    e.target.value = "";
     await importText(
       text,
       file.name.toLowerCase().endsWith(".json") ? "json" : "rle",
@@ -2033,6 +1992,8 @@
           computation = await api("/control", {
             action: "step",
             steps: targetGeneration,
+            run_id: loaded.run_id,
+            generation: loaded.generation,
           });
           if (computation.run_id !== loaded.run_id)
             throw Error(T("The monitor's field changed before computation."));
@@ -2792,6 +2753,5 @@
     setConnection(false);
     state.initialFit = true;
     setMode("editor");
-    setTimeout(() => showDialog("newDialog"), 150);
   } else poll();
 })();

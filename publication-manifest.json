@@ -568,8 +568,8 @@
     },
     {
       "path": "life/checkpoint.py",
-      "bytes": 9832,
-      "sha256": "bbd47cd1864b49dd5115546882265b3d745b3124967b3a99fa7f9aba9166d044"
+      "bytes": 11195,
+      "sha256": "f17aa800799b9aedd77420ab4b19684274f6d6858c5d77b009d4fb9dbdb6df37"
     },
     {
       "path": "life/config.py",
@@ -578,23 +578,23 @@
     },
     {
       "path": "life/formats.py",
-      "bytes": 7255,
-      "sha256": "549267b7267685fd22feafd126ed7c43bfad94fc629cebecfe6ca20e7f66a52c"
+      "bytes": 7600,
+      "sha256": "e9d8007b1ee578ed8afac060aa8dc3465e357c13b1cd38c01e53f5db4aec8515"
     },
     {
       "path": "life/native.py",
-      "bytes": 10650,
-      "sha256": "bea6c0ae015a506698c0335184be57164465309ee1633dec3d22dcf4318e3e01"
+      "bytes": 12132,
+      "sha256": "3c3274bc0cbc174f11bdc6b9b7860f57fc776ebd4dea54374b1187f50067fd7b"
     },
     {
       "path": "life/runtime.py",
-      "bytes": 22933,
-      "sha256": "92b31ca9a113963ca194b673390d778ebf58945df45df7700552bf4ddf2766d1"
+      "bytes": 25449,
+      "sha256": "3bc0d93ab91b168bfb6ee2da1ff7fb10c148926538b650b5a5ceacf6b0991cfd"
     },
     {
       "path": "life/server.py",
-      "bytes": 7727,
-      "sha256": "d43e5efe72d7c79d917f9b8c07668aaf393c7bdb7ffb74dcde805dccc8518297"
+      "bytes": 7914,
+      "sha256": "9c5e3d41419471376b3599331cb654a7858338968c6a3b31b04ab5039e36aced"
     },
     {
       "path": "native/.cargo/config.toml",
@@ -618,13 +618,13 @@
     },
     {
       "path": "native/include/life_native.h",
-      "bytes": 4557,
-      "sha256": "88e48718bf7c872c91ffade67ba0402436cca2a3c5bf0dd7fef64e47db505a73"
+      "bytes": 5050,
+      "sha256": "43b7d8f4ae0a1bf1f5ab1b362896c414852703ef26ffe6d597c8a9ccd9d58939"
     },
     {
       "path": "native/src/lib.rs",
-      "bytes": 86872,
-      "sha256": "d6e8189e8c2393db19dc6504e22ce37f0229c8314f08fee7d26d21a8a72a755e"
+      "bytes": 93463,
+      "sha256": "6062be7ee357f19c7b4af4ceafbb6fbb9253c8d3a534ae63cd932c45f4ed43eb"
     },
     {
       "path": "privacy-report.json",
@@ -703,8 +703,8 @@
     },
     {
       "path": "tests/frontend-core.test.cjs",
-      "bytes": 4142,
-      "sha256": "9e550ad0a9b455138ebf1d5a005742d4eb287b55a80b9f2b072f72305ab333d8"
+      "bytes": 7515,
+      "sha256": "4f9d59cefd9039f2869ee59deaba94e0f3dfbfd41742917036bbe2a86b1e47ce"
     },
     {
       "path": "tests/frontend-i18n.test.cjs",
@@ -713,8 +713,8 @@
     },
     {
       "path": "tests/library-demo.test.cjs",
-      "bytes": 8659,
-      "sha256": "eaf2f2babc8afeaf5de9b94cd728d0647881499a479b66018fde6682deb2efe4"
+      "bytes": 8754,
+      "sha256": "c04d0f42700222b19a856002ba5f8a9cffd31c676838588a3e9be4176334f34b"
     },
     {
       "path": "tests/pattern-catalog.test.cjs",
@@ -733,8 +733,8 @@
     },
     {
       "path": "tests/test_backend.py",
-      "bytes": 15834,
-      "sha256": "b096c031921222f503120c60f231b74544955333d2691341a523b34329e12fbc"
+      "bytes": 28130,
+      "sha256": "041728916756c924635007fb2966e50a46145d41cf9bf46e331aea388374cf8a"
     },
     {
       "path": "tests/test_config_ui.py",
@@ -783,8 +783,8 @@
     },
     {
       "path": "tests/test_watchers.py",
-      "bytes": 12077,
-      "sha256": "dd0207eecd01afbd5830b6887336584ca2ec84b434ab4c6e28a36ec312c1ab95"
+      "bytes": 12442,
+      "sha256": "6fb658c68d8d469532ae6a6263a836d1a181d3b1365f734618a013820b9d9125"
     },
     {
       "path": "tests/thermal-view.test.cjs",
@@ -798,8 +798,8 @@
     },
     {
       "path": "web/app.js",
-      "bytes": 93923,
-      "sha256": "722a0755643c27b9ffc6bbbc756913929ba95214b98c6a8b53b5ba69db638042"
+      "bytes": 92852,
+      "sha256": "9a4c432afe119a206716df8a0488dcebfe470f941b184d5ed1f3ee48f8220407"
     },
     {
       "path": "web/catalog-locales.js",
@@ -823,8 +823,8 @@
     },
     {
       "path": "web/core.js",
-      "bytes": 21782,
-      "sha256": "189a57e025daccc0245f04ad26409929d9785555d05899fbe8fcf1f633a3a038"
+      "bytes": 26833,
+      "sha256": "4c07cc9ff33dfbb610d267cb2dec1d2fa0d0c19a2ce70a3aec53304429a9e4a7"
     },
     {
       "path": "web/device-library.js",
@@ -838,8 +838,8 @@
     },
     {
       "path": "web/index.html",
-      "bytes": 46085,
-      "sha256": "0bcbe836010127b0c041deb250947ba0421d6539501def987db092dabcfe78e0"
+      "bytes": 46088,
+      "sha256": "45995f200b5c28431b71fe6723a18ff086e8b174dff8451e99822fe7b837cae7"
     },
     {
       "path": "web/patterns.js",
@@ -878,8 +878,8 @@
     },
     {
       "path": "web/ui-locales.js",
-      "bytes": 84841,
-      "sha256": "9bb77a302386ec44f331a849925f76e82070e47a343ef68afba7cdf2030de582"
+      "bytes": 86697,
+      "sha256": "170ff3720e5792e33e5125be941786800455c6264700fc01660547ac14cab997"
     }
   ]
 }

@@ -164,6 +164,12 @@ def test_bulk_metadata_weights_exact_clipped_live_cells(guarded_native):
         assert meta["known_live"] == [7]
         assert meta["period_log2_sum"] == [3.0]
         assert meta["period_max"] == [2]
+        # The requested area ends halfway through the block, before the blinker.
+        for scale in (16, 64, 128):
+            counts, clipped = engine.render_cycles(10, 10, 1, 1, scale, extent=(1, 2))
+            assert counts == clipped["known_live"] == [2]
+            assert clipped["period_log2_sum"] == [0.0]
+            assert clipped["period_max"] == [1]
         cells = set(engine.cells())
         for scale in (1, 3, 16, 64, 128, 200):
             for x, y in ((0, 0), (11, 10), (63, 63), (127, 127), (128, 128)):

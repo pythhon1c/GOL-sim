@@ -88,6 +88,8 @@ function fixture({
       }
       if (url === "/control") {
         assert.equal(body.action, "step");
+        assert.equal(body.run_id, "imported-field");
+        assert.equal(body.generation, 0);
         pending = body.steps;
         return status();
       }

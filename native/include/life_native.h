@@ -35,6 +35,13 @@ uint8_t life_randomize(LifeHandle *, uint32_t x, uint32_t y, uint32_t width, uin
    Exact living counts per scale-by-scale square, clipped to finite board.
    Rendering does not repeat the world when wrap is enabled. */
 uint8_t life_render(LifeHandle *, uint32_t x, uint32_t y, uint32_t output_width, uint32_t output_height, uint32_t scale, uint64_t *out);
+/* Render only cells in the requested rectangle. Each buffer has
+   ceil(width_cells / scale) * ceil(height_cells / scale) elements.
+   Pass NULL for all three metadata buffers for counts alone. */
+uint8_t life_render_region(LifeHandle *, uint32_t x, uint32_t y,
+                           uint32_t width_cells, uint32_t height_cells, uint32_t scale,
+                           uint64_t *counts, uint64_t *known_live,
+                           double *period_log2_sum, uint32_t *period_max);
 /* Optional exact cycle replay. Reconfiguration clears proofs, never cells.
    enabled: 0/1; max_period: 1..64; memory_mb: 0..1048576;
    interval: 1..65535 (new searches only; active guards run every step).

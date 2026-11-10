@@ -17,14 +17,14 @@ function createLifeCore() {
           : source;
   const TILE = 64,
     WORDS = 128,
-    MAX_DIM = 1000000000;
+    MAX_DIM = 2000000000;
   const key = (x, y) => x + "," + y;
   const popcount = (n) => {
     n = n - ((n >>> 1) & 0x55555555);
     n = (n & 0x33333333) + ((n >>> 2) & 0x33333333);
     return (((n + (n >>> 4)) & 0x0f0f0f0f) * 0x01010101) >>> 24;
   };
-  function dimensions(w, h) {
+  function dimensions(w, h, wrap = false) {
     if (
       !Number.isInteger(w) ||
       !Number.isInteger(h) ||
@@ -34,15 +34,18 @@ function createLifeCore() {
       h > MAX_DIM
     )
       throw Error(
-        T("Dimensions must be integers from 1 to 1,000,000,000."),
+        T("Dimensions must be integers from 1 to 2,000,000,000."),
       );
+    if (typeof wrap !== "boolean") throw Error(T("Wrap must be true or false."));
+    if (wrap && (w < 3 || h < 3))
+      throw Error(T("A toroidal field needs at least 3 rows and 3 columns."));
   }
   class SparseGrid {
     constructor(width = 4096, height = 4096, wrap = false) {
-      dimensions(width, height);
+      dimensions(width, height, wrap);
       this.width = width;
       this.height = height;
-      this.wrap = !!wrap;
+      this.wrap = wrap;
       this.tiles = new Map();
       this.population = 0;
       this.revision = 0;
@@ -122,18 +125,31 @@ function createLifeCore() {
       this.population += p;
       this.revision++;
     }
+    *visibleTiles(r) {
+      const left = Math.max(0, Math.floor(r.x / TILE));
+      const top = Math.max(0, Math.floor(r.y / TILE));
+      const right = Math.ceil(Math.min(this.width, r.x + r.width) / TILE);
+      const bottom = Math.ceil(Math.min(this.height, r.y + r.height) / TILE);
+      if (left >= right || top >= bottom) return;
+      // A close-up costs only a few lookups, while a sparse whole-world view
+      // visits occupied tiles without enumerating an enormous empty rectangle.
+      if ((right - left) * (bottom - top) < this.tiles.size) {
+        for (let y = top; y < bottom; y++)
+          for (let x = left; x < right; x++) {
+            const tile = this.tiles.get(key(x, y));
+            if (tile) yield tile;
+          }
+      } else {
+        for (const tile of this.tiles.values())
+          if (tile.x >= left && tile.y >= top && tile.x < right && tile.y < bottom)
+            yield tile;
+      }
+    }
     *cells(rect) {
       const r = rect || { x: 0, y: 0, width: this.width, height: this.height };
-      for (const t of this.tiles.values()) {
+      for (const t of this.visibleTiles(r)) {
         const ox = t.x * 64,
           oy = t.y * 64;
-        if (
-          ox >= r.x + r.width ||
-          oy >= r.y + r.height ||
-          ox + 64 <= r.x ||
-          oy + 64 <= r.y
-        )
-          continue;
         for (let wi = 0; wi < 128; wi++) {
           let word = t.bits[wi] >>> 0;
           while (word) {
@@ -153,11 +169,17 @@ function createLifeCore() {
         y = Infinity,
         right = -1,
         bottom = -1;
-      for (const [cx, cy] of this.cells()) {
-        x = Math.min(x, cx);
-        y = Math.min(y, cy);
-        right = Math.max(right, cx);
-        bottom = Math.max(bottom, cy);
+      for (const tile of this.tiles.values()) {
+        const ox = tile.x * TILE, oy = tile.y * TILE;
+        for (let i = 0; i < WORDS; i++) {
+          const word = tile.bits[i];
+          if (!word) continue;
+          const start = ox + (i % 2) * 32, row = oy + Math.floor(i / 2);
+          x = Math.min(x, start + 31 - Math.clz32(word & -word));
+          right = Math.max(right, start + 31 - Math.clz32(word));
+          y = Math.min(y, row);
+          bottom = Math.max(bottom, row);
+        }
       }
       return right < 0
         ? { x: 0, y: 0, width: 0, height: 0 }
@@ -177,8 +199,18 @@ function createLifeCore() {
       return g;
     }
   }
+  function checkRule(rule) {
+    if (typeof rule !== "string" || !["B3/S23", "23/3"].includes(rule.toUpperCase().replaceAll(" ", "")))
+      throw Error(T("Only B3/S23 is supported."));
+  }
+  function generationValue(digits) {
+    if (!/^\d{1,20}$/.test(digits) || BigInt(digits) > 0xffffffffffffffffn)
+      throw Error(T("Generation must be an unsigned 64-bit integer."));
+    const value = Number(digits);
+    return Number.isSafeInteger(value) ? value : BigInt(digits);
+  }
   function parseRLE(text, options = {}) {
-    const maxLive = options.maxLive || 5000000;
+    const maxLive = options.maxLive ?? 5000000;
     let meta = {},
       header = null,
       body = [];
@@ -187,8 +219,12 @@ function createLifeCore() {
       if (!l) continue;
       if (l.startsWith("#")) {
         if (l.startsWith("#C LIFE ")) {
-          for (const m of l.matchAll(/(\w+)=(-?\d+)/g))
-            meta[m[1]] = Number(m[2]);
+          for (const token of l.slice(8).split(/\s+/)) {
+            const m = /^(width|height|origin_x|origin_y|wrap|generation)=(\d+)$/.exec(token);
+            if (!m || Object.hasOwn(meta, m[1]))
+              throw Error(T("Malformed or duplicate LIFE metadata."));
+            meta[m[1]] = m[1] === "generation" ? generationValue(m[2]) : Number(m[2]);
+          }
         }
         continue;
       }
@@ -202,18 +238,24 @@ function createLifeCore() {
               "Invalid RLE header. Expected x = …, y = …, rule = B3/S23.",
             ),
           );
-        const rule = (m[3] || "B3/S23").replace(/\s/g, "").toUpperCase();
-        if (!["B3/S23", "23/3"].includes(rule))
-          throw Error(T("Only the classic B3/S23 rules are supported."));
+        checkRule(m[3] || "B3/S23");
         header = { width: Number(m[1]), height: Number(m[2]) };
         dimensions(Math.max(1, header.width), Math.max(1, header.height));
       } else body.push(l);
     }
     if (!header) throw Error(T("Empty RLE file."));
-    const g = new SparseGrid(
-      Math.max(1, header.width),
-      Math.max(1, header.height),
-    );
+    const fieldWidth = meta.width ?? Math.max(1, header.width);
+    const fieldHeight = meta.height ?? Math.max(1, header.height);
+    if (meta.wrap !== undefined && meta.wrap !== 0 && meta.wrap !== 1)
+      throw Error(T("RLE wrap must be 0 or 1."));
+    dimensions(fieldWidth, fieldHeight, meta.wrap === 1);
+    const originX = meta.origin_x ?? 0, originY = meta.origin_y ?? 0;
+    if (originX + header.width > fieldWidth || originY + header.height > fieldHeight)
+      throw Error(T("The RLE position extends beyond the field."));
+    const placed = options.restoreField === true && Object.keys(meta).length > 0;
+    const g = placed
+      ? new SparseGrid(fieldWidth, fieldHeight, meta.wrap === 1)
+      : new SparseGrid(Math.max(1, header.width), Math.max(1, header.height));
     let x = 0,
       y = 0,
       n = "",
@@ -226,16 +268,17 @@ function createLifeCore() {
         if (n.length > 10) throw Error(T("RLE run length is too large."));
         continue;
       }
-      const count = n ? Number(n) : 1;
-      n = "";
-      if (!Number.isSafeInteger(count) || count < 1)
-        throw Error(T("Invalid RLE run length."));
       if (c === "!") {
+        if (n) throw Error(T("Invalid RLE run length."));
         ended = true;
         if (s.slice(i + 1).trim())
           throw Error(T("Unexpected data after the end of RLE."));
         break;
       }
+      const count = n ? Number(n) : 1;
+      n = "";
+      if (!Number.isSafeInteger(count) || count < 1)
+        throw Error(T("Invalid RLE run length."));
       if (c === "$") {
         y += count;
         x = 0;
@@ -248,10 +291,12 @@ function createLifeCore() {
           if (g.population + count > maxLive)
             throw Error(
               T(
-                "The file exceeds the offline editor's 5-million-live-cell limit. Load it through the server.",
+                "Too many cells for offline import.",
               ),
             );
-          for (let j = 0; j < count; j++) g.set(x + j, y, 1);
+          const startX = x + (placed ? originX : 0);
+          const row = y + (placed ? originY : 0);
+          for (let j = 0; j < count; j++) g.set(startX + j, row, 1);
         }
         x += count;
       } else throw Error(T("Unsupported RLE character: ") + c);
@@ -262,18 +307,31 @@ function createLifeCore() {
       width: header.width,
       height: header.height,
       metadata: meta,
+      placed,
     };
   }
   function parseStateJSON(text) {
     const d = typeof text === "string" ? JSON.parse(text) : text;
-    if (d.rule && d.rule !== "B3/S23")
-      throw Error(T("Only B3/S23 is supported."));
+    if (!d || typeof d !== "object" || Array.isArray(d))
+      throw Error(T("The state must be a JSON object."));
+    checkRule(d.rule === undefined ? "B3/S23" : d.rule);
     if (d.version !== undefined && d.version !== 1)
       throw Error(T("Unknown format version."));
     const base = d.coordinate_base === undefined ? 0 : d.coordinate_base;
     if (base !== 0 && base !== 1)
       throw Error(T("coordinate_base must be 0 or 1."));
+    dimensions(d.width, d.height, d.wrap);
     const g = new SparseGrid(d.width, d.height, d.wrap);
+    let generation = d.generation === undefined ? 0 : d.generation;
+    if (!Number.isSafeInteger(generation) || generation < 0) {
+      // Re-read the original number token only in the rare case where it
+      // cannot be represented exactly by Number. Never accept a rounded value.
+      if (typeof text !== "string" || typeof generation !== "number" || generation < 0 || !Number.isInteger(generation))
+        throw Error(T("Generation must be an unsigned 64-bit integer."));
+      generation = JSON.parse(text, (key, value, context) =>
+        key === "generation" ? generationValue(context?.source ?? "") : value,
+      ).generation;
+    }
     if (!Array.isArray(d.cells))
       throw Error(T("JSON must contain a cells array."));
     if (d.cells.length > 5000000)
@@ -289,12 +347,15 @@ function createLifeCore() {
       const x = cell[0] - base,
         y = cell[1] - base;
       if (!g.inside(x, y)) throw Error(T("Cell coordinates are outside the field."));
-      g.set(x, y, 1);
+      if (!g.set(x, y, 1)) throw Error(T("The state contains a duplicate live cell."));
     }
-    return { grid: g, generation: Number(d.generation) || 0 };
+    return { grid: g, generation };
   }
   function encodeStateJSON(g, generation = 0) {
-    return JSON.stringify({
+    if (typeof generation !== "bigint" && !Number.isSafeInteger(generation))
+      throw Error(T("Generation must be an unsigned 64-bit integer."));
+    const exactGeneration = generationValue(String(generation));
+    const header = JSON.stringify({
       format: "exact-life-state",
       version: 1,
       rule: "B3/S23",
@@ -302,9 +363,19 @@ function createLifeCore() {
       width: g.width,
       height: g.height,
       wrap: g.wrap,
-      generation,
-      cells: Array.from(g.cells(), ([x, y]) => [x + 1, y + 1]),
     });
+    // Serialize directly from sparse tiles. Millions of temporary [x,y] arrays
+    // can otherwise cost several times more memory than the finished file.
+    const chunks = [], batch = [];
+    for (const [x, y] of g.cells()) {
+      batch.push("[" + (x + 1) + "," + (y + 1) + "]");
+      if (batch.length === 4096) {
+        chunks.push(batch.join(","));
+        batch.length = 0;
+      }
+    }
+    if (batch.length) chunks.push(batch.join(","));
+    return header.slice(0, -1) + ',"generation":' + exactGeneration + ',"cells":[' + chunks.join(",") + "]}";
   }
   function encodeRLE(g, rect) {
     const b = rect || g.bounds();
@@ -367,91 +438,76 @@ function createLifeCore() {
     if (columns * rows > 2097152)
       throw Error(T("Viewport is too large."));
     const counts = new Float64Array(columns * rows);
-    if (scale >= 64 && rect.x % scale === 0 && rect.y % scale === 0) {
-      for (const t of g.tiles.values()) {
-        const x = t.x * 64,
-          y = t.y * 64;
-        if (
-          x >= rect.x &&
-          y >= rect.y &&
-          x < rect.x + rect.width &&
-          y < rect.y + rect.height
-        )
-          counts[
-            Math.floor((y - rect.y) / scale) * columns +
-              Math.floor((x - rect.x) / scale)
-          ] += t.population;
+    const aligned = rect.x % scale === 0 && rect.y % scale === 0;
+    const right = rect.x + rect.width, bottom = rect.y + rect.height;
+    for (const t of g.visibleTiles(rect)) {
+      const ox = t.x * 64,
+        oy = t.y * 64;
+      // A cached whole tile or bin is exact only when its live cells cannot
+      // cross the requested right or bottom edge. World-edge padding is dead.
+      const chunkSize = Math.min(scale, TILE);
+      const clipped =
+        (right < g.width && right % chunkSize !== 0 && ox + TILE > right) ||
+        (bottom < g.height && bottom % chunkSize !== 0 && oy + TILE > bottom);
+      if (aligned && !clipped && scale >= TILE) {
+        const column = Math.floor((ox - rect.x) / scale);
+        const row = Math.floor((oy - rect.y) / scale);
+        counts[row * columns + column] += t.population;
+        continue;
       }
-    } else {
-      for (const t of g.tiles.values()) {
-        const ox = t.x * 64,
-          oy = t.y * 64;
-        if (
-          ox >= rect.x + rect.width ||
-          oy >= rect.y + rect.height ||
-          ox + 64 <= rect.x ||
-          oy + 64 <= rect.y
-        )
-          continue;
-        if (
-          scale > 1 &&
-          scale < 64 &&
-          rect.x % scale === 0 &&
-          rect.y % scale === 0
-        ) {
-          let bins = t.lod.get(scale);
-          const side = 64 / scale;
-          if (!bins) {
-            bins = new Uint16Array(side * side);
-            for (let wi = 0; wi < 128; wi++) {
-              let word = t.bits[wi] >>> 0;
-              while (word) {
-                const bit = 31 - Math.clz32((word & -word) >>> 0),
-                  i = wi * 32 + bit;
-                bins[
-                  Math.floor(Math.floor(i / 64) / scale) * side +
-                    Math.floor((i % 64) / scale)
-                ]++;
-                word = (word & (word - 1)) >>> 0;
-              }
-            }
-            t.lod.set(scale, bins);
-          }
-          for (let by = 0; by < side; by++)
-            for (let bx = 0; bx < side; bx++) {
-              const x = ox + bx * scale,
-                y = oy + by * scale;
-              if (
-                x >= rect.x &&
-                y >= rect.y &&
-                x < rect.x + rect.width &&
-                y < rect.y + rect.height
-              )
-                counts[
-                  Math.floor((y - rect.y) / scale) * columns +
-                    Math.floor((x - rect.x) / scale)
-                ] += bins[by * side + bx];
-            }
-        } else {
+      if (aligned && !clipped && scale > 1 && scale < TILE) {
+        let bins = t.lod.get(scale);
+        const side = 64 / scale;
+        if (!bins) {
+          bins = new Uint16Array(side * side);
           for (let wi = 0; wi < 128; wi++) {
             let word = t.bits[wi] >>> 0;
             while (word) {
               const bit = 31 - Math.clz32((word & -word) >>> 0),
-                i = wi * 32 + bit,
-                x = ox + (i % 64),
-                y = oy + Math.floor(i / 64);
-              if (
-                x >= rect.x &&
-                y >= rect.y &&
-                x < rect.x + rect.width &&
-                y < rect.y + rect.height
-              )
-                counts[
-                  Math.floor((y - rect.y) / scale) * columns +
-                    Math.floor((x - rect.x) / scale)
-                ]++;
+                i = wi * 32 + bit;
+              bins[
+                Math.floor(Math.floor(i / 64) / scale) * side +
+                  Math.floor((i % 64) / scale)
+              ]++;
               word = (word & (word - 1)) >>> 0;
             }
+          }
+          t.lod.set(scale, bins);
+        }
+        for (let by = 0; by < side; by++)
+          for (let bx = 0; bx < side; bx++) {
+            const x = ox + bx * scale,
+              y = oy + by * scale;
+            if (
+              x >= rect.x &&
+              y >= rect.y &&
+              x < rect.x + rect.width &&
+              y < rect.y + rect.height
+            )
+              counts[
+                Math.floor((y - rect.y) / scale) * columns +
+                  Math.floor((x - rect.x) / scale)
+              ] += bins[by * side + bx];
+          }
+      } else {
+        for (let wi = 0; wi < 128; wi++) {
+          let word = t.bits[wi] >>> 0;
+          while (word) {
+            const bit = 31 - Math.clz32((word & -word) >>> 0),
+              i = wi * 32 + bit,
+              x = ox + (i % 64),
+              y = oy + Math.floor(i / 64);
+            if (
+              x >= rect.x &&
+              y >= rect.y &&
+              x < rect.x + rect.width &&
+              y < rect.y + rect.height
+            )
+              counts[
+                Math.floor((y - rect.y) / scale) * columns +
+                  Math.floor((x - rect.x) / scale)
+              ]++;
+            word = (word & (word - 1)) >>> 0;
           }
         }
       }
@@ -666,6 +722,21 @@ function createLifeCore() {
         .join("")
     );
   }
+  function viewportRegion(world, view, screenWidth, screenHeight, maxBins = 1500000) {
+    if (!Number.isSafeInteger(maxBins) || maxBins < 1 || !Number.isFinite(view.zoom) || view.zoom <= 0)
+      throw Error(T("Viewport is too large."));
+    let scale = 2 ** Math.max(0, Math.ceil(Math.log2(1 / Math.max(view.zoom, 0.0000001))));
+    for (;;) {
+      const x = Math.max(0, Math.floor(view.x / scale) * scale);
+      const y = Math.max(0, Math.floor(view.y / scale) * scale);
+      const right = Math.min(world.width, Math.ceil((view.x + screenWidth / view.zoom) / scale) * scale);
+      const bottom = Math.min(world.height, Math.ceil((view.y + screenHeight / view.zoom) / scale) * scale);
+      const width = Math.max(0, right - x), height = Math.max(0, bottom - y);
+      if (Math.ceil(width / scale) * Math.ceil(height / scale) <= maxBins)
+        return { x, y, width, height, scale };
+      scale *= 2;
+    }
+  }
   function viewportCacheKey(data) {
     return [
       data.run_id,
@@ -700,6 +771,7 @@ function createLifeCore() {
     thermalValue,
     thermalColor,
     viewportCacheKey,
+    viewportRegion,
     popcount,
     TILE,
   };

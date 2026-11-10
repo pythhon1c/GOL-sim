@@ -7,6 +7,7 @@ from pathlib import Path
 import random
 import threading
 import time
+from types import SimpleNamespace
 
 import pytest
 from fastapi.testclient import TestClient
@@ -48,6 +49,30 @@ def test_state_roundtrip(format):
     state = parse_state(text, format)
     assert (state.width, state.height, state.wrap, state.generation) == (19, 11, True, 123)
     assert state.cells == cells
+
+
+def test_rle_export_orders_native_tiles_and_preserves_long_runs_and_gaps():
+    width = 2_000_000_000
+    height = 100_000
+    generation = (1 << 64) - 2
+    cells = [(width - 1, height - 1), (4, 3), (5, 3)]
+    cells += [(x, 1) for x in reversed(range(63, 300))]
+    cells += [(x, 9) for x in range(0, 600, 3)]
+    encoded = rle_text(width, height, True, generation, iter(cells))
+    lines = encoded.splitlines()[2:]
+    assert all(0 < len(line) <= 70 for line in lines)
+    assert "".join(lines).startswith("$63b237o2$4b2o6$")
+    assert "".join(lines).endswith("99990$1999999999bo!")
+    restored = parse_state(encoded, "rle")
+    assert (restored.width, restored.height, restored.wrap, restored.generation) == (width, height, True, generation)
+    assert restored.cells == sorted(cells, key=lambda cell: (cell[1], cell[0]))
+    assert rle_text(5, 5, False, 0, []).splitlines()[-1] == "!"
+
+
+def test_state_version_rejects_boolean():
+    data = {"width": 3, "height": 3, "cells": [], "version": True}
+    with pytest.raises(ValueError, match="version"):
+        parse_state(json.dumps(data), "json")
 
 
 @pytest.mark.parametrize("text", ["x=3,y=3,rule=B36/S23\nbo$3o!", "x=3,y=3\n4o!", "x=3,y=3\n3o", "x=3,y=3\n0o!", "x=3,y=3\no!o!", "x=3,y=3\n3$ob!"])
@@ -198,6 +223,11 @@ def test_api_atomic_import_controls_and_security(tmp_path):
             assert before["run_id"] == client.get("/api/status").json()["run_id"]
             assert client.get("/api/viewport?run_id=stale-world").status_code == 409
             assert sum(before["counts"]) == 3
+            for layer in ("life", "cycles"):
+                for scale in (4, 64):
+                    clipped = client.get("/api/viewport", params={"x": 31, "y": 30, "width": 1, "height": 1,
+                                                                   "scale": scale, "layer": layer}).json()
+                    assert clipped["counts"] == [1]
             bad = client.post("/api/import", json={"format": "rle", "text": "x=3,y=3\n4o!"})
             assert bad.status_code == 400
             assert client.get("/api/viewport?width=64&height=64").json()["counts"] == before["counts"]
@@ -338,3 +368,223 @@ def test_config_update_serializes_validation_with_world_replacement(tmp_path, mo
     finally:
         allow_commit.set()
         simulation.close()
+
+
+@pytest.fixture
+def small_sim(tmp_path):
+    if not library_path().exists():
+        pytest.skip("Build the native library")
+    config = merge_config({"grid": {"width": 64, "height": 64},
+                           "engine": {"tile_size": 64, "threads": 1, "memory_mb": 512, "cache_mb": 0},
+                           "checkpoints": {"directory": str(tmp_path / "checkpoints")}})
+    simulation = Simulation(config, tmp_path)
+    try:
+        yield simulation
+    finally:
+        simulation.close()
+
+
+def wait_status(simulation, predicate, timeout=4):
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        status = simulation.status()
+        if predicate(status):
+            return status
+        time.sleep(0.005)
+    pytest.fail(f"Worker did not reach the expected state: {simulation.status()}")
+
+
+def test_acknowledged_step_requests_accumulate_and_pause_commits_inflight_generation(small_sim, monkeypatch):
+    simulation = small_sim
+    # Hold the generation barrier while both commands are accepted before the worker can service either.
+    with simulation.lock:
+        simulation.control("step", 2)
+        assert simulation.control("step", 3)["pending_steps"] == 5
+    wait_status(simulation, lambda status: status["generation"] == 5 and status["pending_steps"] == 0)
+
+    entered, release = threading.Event(), threading.Event()
+    real_step = simulation.engine.step
+    def delayed_step():
+        entered.set()
+        assert release.wait(4)
+        return real_step()
+    monkeypatch.setattr(simulation.engine, "step", delayed_step)
+    simulation.control("run")
+    assert entered.wait(3)
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        try:
+            pausing = pool.submit(simulation.control, "pause")
+            status = pool.submit(simulation.status).result(timeout=1)
+            assert status["generation"] == 5 and status["running"]
+            with pytest.raises(FutureTimeout):
+                pausing.result(timeout=0.05)
+        finally:
+            release.set()
+        acknowledged = pausing.result(timeout=3)
+    assert acknowledged["generation"] == 6 and acknowledged["pending_steps"] == 0
+    assert acknowledged["running"] is False
+    assert simulation.viewport(0, 0, 64, 64, 64, generation=6)["generation"] == 6
+
+
+def test_strict_checkpoint_wait_releases_field_and_rechecks_live_settings(small_sim):
+    simulation = small_sim
+    simulation.new({"width": 64, "height": 64, "cells": [[10, 11], [11, 11], [12, 11]]})
+    simulation.update_config({"checkpoints": {"mode": "strict", "every_generations": 1,
+                                               "min_interval_seconds": 3600}})
+    simulation.control("step", 3)
+    wait_status(simulation, lambda s: s["stage"] == "waiting_for_checkpoint" and s["generation"] == 1)
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        view = pool.submit(simulation.viewport, 10, 10, 3, 3, 1, 1).result(timeout=2)
+        assert view["counts"] == [0, 1, 0, 0, 1, 0, 0, 1, 0]
+        paused = pool.submit(simulation.control, "pause").result(timeout=2)
+        assert paused["generation"] == 1 and not paused["pending_steps"]
+    simulation.update_config({"checkpoints": {"min_interval_seconds": 0}})
+    result = wait_status(simulation, lambda s: s["checkpoint"]["last"] is not None)
+    saved = result["checkpoint"]["last"]
+    assert (saved["run_id"], saved["generation"], saved["population"]) == (view["run_id"], 1, 3)
+    manifest = Path(saved["path"])
+    restored = NativeEngine(64, 64, tile_size=64, threads=1, cache_mb=0, memory_bytes=64 << 20)
+    try:
+        load_checkpoint_into(manifest, restored, checkpoint_metadata(manifest))
+        assert restored.generation == 1 and set(restored.cells()) == {(11, 10), (11, 11), (11, 12)}
+    finally:
+        restored.close()
+
+
+def test_api_rejects_stale_control_and_invalid_random_selection_without_changing_world(small_sim):
+    simulation = small_sim
+    with TestClient(create_app(simulation.config, simulation), base_url="http://127.0.0.1") as client:
+        old = client.get("/api/status").json()
+        current = client.post("/api/new", json={"width": 64, "height": 64, "cells": [[15, 15]]}).json()
+        for version in ({"run_id": old["run_id"], "generation": 0},
+                        {"run_id": current["run_id"], "generation": 1}):
+            assert client.post("/api/control", json={"action": "step", **version}).status_code == 409
+        assert client.post("/api/new", json={"width": 64, "height": 64, "cells": [[1, 2]],
+                                             "random": {}}).status_code == 400
+        assert client.post("/api/new", json={"width": 64, "height": 64, "random": {"rect": {}}}).status_code == 400
+        unchanged = client.get("/api/status").json()
+        assert (unchanged["run_id"], unchanged["generation"], unchanged["population"],
+                unchanged["pending_steps"]) == (current["run_id"], 0, 1, 0)
+        assert client.post("/api/control", json={"action": "step", "run_id": current["run_id"],
+                                                 "generation": 0}).status_code == 200
+        wait_status(simulation, lambda s: s["generation"] == 1 and s["population"] == 0)
+
+
+def test_shutdown_joins_worker_and_rejects_late_mutations(small_sim):
+    simulation = small_sim
+    simulation.close()
+    assert not simulation.thread.is_alive()
+    assert simulation.status()["stage"] == "closed"
+    for operation in (lambda: simulation.control("run"), lambda: simulation.new({"width": 8, "height": 8}),
+                      lambda: simulation.viewport(0, 0, 1, 1, 1), simulation.checkpoint):
+        with pytest.raises(RuntimeError, match="closed"):
+            operation()
+    simulation.close()
+
+
+def test_shutdown_interrupts_paced_checkpoint_and_retains_previous_snapshot(small_sim):
+    simulation = small_sim
+    simulation.new({"width": 64, "height": 64, "cells": [[3, 4], [4, 4], [5, 4]]})
+    saved = simulation.checkpoint()
+    directory = Path(saved["path"]).parent
+    original_files = set(directory.iterdir())
+    simulation.update_config({"checkpoints": {"min_interval_seconds": 0, "write_mb_per_second": 0.000001}})
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        writing = pool.submit(simulation.checkpoint)
+        wait_status(simulation, lambda s: s["stage"] == "checkpoint")
+        pool.submit(simulation.close).result(timeout=3)
+        with pytest.raises(RuntimeError, match="cancelled"):
+            writing.result(timeout=3)
+    assert set(directory.iterdir()) == original_files
+    assert checkpoint_metadata(Path(saved["path"]))["population"] == 3
+
+
+def test_running_field_advances_under_continuous_viewport_reads(small_sim, monkeypatch):
+    simulation = small_sim
+    simulation.new({"width": 64, "height": 64, "cells": [[20, 21], [21, 21], [22, 21]]})
+    simulation.update_config({"engine": {"cpu_max_percent": 100}})
+    render = simulation.engine.render
+    def slow_render(*args, **kwargs):
+        time.sleep(0.002)
+        return render(*args, **kwargs)
+    monkeypatch.setattr(simulation.engine, "render", slow_render)
+    stop = threading.Event()
+    gate = threading.Barrier(9)
+    def reader():
+        gate.wait(timeout=5)
+        seen = 0
+        while not stop.is_set():
+            view = simulation.viewport(20, 20, 3, 3, 1)
+            expected = ([0, 0, 0, 1, 1, 1, 0, 0, 0] if view["generation"] % 2 == 0
+                        else [0, 1, 0, 0, 1, 0, 0, 1, 0])
+            assert view["counts"] == expected
+            seen += 1
+        return seen
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        readers = [pool.submit(reader) for _ in range(8)]
+        try:
+            gate.wait(timeout=5)
+            simulation.control("run")
+            generation = simulation.status()["generation"]
+            wait_status(simulation, lambda state: state["generation"] >= generation + 8)
+            simulation.control("pause")
+        finally:
+            stop.set()
+        assert all(f.result(timeout=4) > 0 for f in readers)
+
+
+def test_checkpoint_retention_tolerates_unrelated_malformed_json(small_sim):
+    store = small_sim.checkpoints
+    unrelated = store.directory / "life-00000000000000000000-deadbeef1234.json"
+    unrelated.write_text("[]", encoding="utf-8")
+    checkpoint = small_sim.checkpoint()
+    manifest = Path(checkpoint["path"])
+    assert checkpoint_metadata(manifest)["population"] == 0 and unrelated.read_bytes() == b"[]"
+    data = json.loads(manifest.read_bytes())
+    for bad in ([], {**data, "coordinate_base": 1}, {**data, "version": True}, {**data, "segments": [None]}):
+        unrelated.write_text(json.dumps(bad), encoding="utf-8")
+        with pytest.raises(ValueError):
+            checkpoint_metadata(unrelated)
+
+
+def test_cpu_pacing_includes_controller_work_on_small_fields(small_sim, monkeypatch):
+    import life.runtime as runtime
+    simulation = small_sim
+    simulation.update_config({"engine": {"cpu_max_percent": 20}})
+    # Generation timings must still advance when the checkpoint clock stands still.
+    checkpoint_tick = time.monotonic()
+    monkeypatch.setattr(runtime, "time", SimpleNamespace(monotonic=lambda: checkpoint_tick,
+                                                        perf_counter=time.perf_counter))
+    real_stats = simulation.engine.stats
+    samples = []
+    def delayed_stats():
+        samples.append(time.perf_counter())
+        time.sleep(0.02)
+        return real_stats()
+    monkeypatch.setattr(simulation.engine, "stats", delayed_stats)
+    simulation.control("step", 2)
+    status = wait_status(simulation, lambda s: s["generation"] == 2)
+    assert status["last_step_seconds"] > 0 and status["generations_per_second"] > 0
+    assert len(samples) == 2
+    # At least 20 ms of controller work per generation, paced to 20% utilization.
+    assert samples[1] - samples[0] >= 0.09
+
+
+def test_checkpoint_io_fulfills_elapsed_generation_pacing(small_sim, monkeypatch):
+    import life.runtime as runtime
+    simulation = small_sim
+    simulation.update_config({"engine": {"cpu_max_percent": 20},
+                              "checkpoints": {"every_generations": 1, "min_interval_seconds": 0}})
+    elapsed_io = 0.0
+    monkeypatch.setattr(runtime, "time", SimpleNamespace(monotonic=time.monotonic,
+                                                        perf_counter=lambda: time.perf_counter() + elapsed_io))
+    real_write = simulation.checkpoints.write
+    def paced_write(*args):
+        nonlocal elapsed_io
+        saved = real_write(*args)
+        elapsed_io += 60.0
+        return saved
+    monkeypatch.setattr(simulation.checkpoints, "write", paced_write)
+    simulation.control("step", 2)
+    wait_status(simulation, lambda s: s["checkpoint"]["last"] and s["checkpoint"]["last"]["generation"] == 2)
+    assert elapsed_io == 120

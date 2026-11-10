@@ -484,16 +484,70 @@ impl Engine {
         result
     }
     fn input(&self, coord: Coord) -> Vec<u64> {
-        let stride = self.size / 64 + 2;
-        let mut words = Vec::with_capacity((self.size + 2) * stride);
-        let x = coord.0 as i64 * self.size as i64;
-        let y = coord.1 as i64 * self.size as i64;
-        for row in -1..=self.size as i64 {
-            for col in -1..=self.size as i64 / 64 {
-                words.push(self.world_word(x + col * 64, y + row));
+        let tile_size = self.size as u32;
+        let words_per_row = self.size / 64;
+        let stride = words_per_row + 2;
+        let x = i64::from(coord.0) * i64::from(tile_size);
+        let y = i64::from(coord.1) * i64::from(tile_size);
+        if self.wrap {
+            // A partial tile at the seam can put the wrapped row or word in
+            // the middle of a tile. Read that neighborhood in world coordinates.
+            let crosses_partial_x = self.width % tile_size != 0
+                && (x < 64 || x + i64::from(tile_size) + 64 > i64::from(self.width));
+            let crosses_partial_y = self.height % tile_size != 0
+                && (y == 0 || y + i64::from(tile_size) >= i64::from(self.height));
+            if crosses_partial_x || crosses_partial_y {
+                let mut words = Vec::with_capacity((self.size + 2) * stride);
+                for row in -1..=i64::from(tile_size) {
+                    for col in -1..=words_per_row as i64 {
+                        words.push(self.world_word(x + col * 64, y + row));
+                    }
+                }
+                return words;
             }
         }
-        words
+
+        let columns = i64::from(self.width.div_ceil(tile_size));
+        let rows = i64::from(self.height.div_ceil(tile_size));
+        let neighbor = |dx: i64, dy: i64| {
+            let mut tx = i64::from(coord.0) + dx;
+            let mut ty = i64::from(coord.1) + dy;
+            if self.wrap {
+                tx = tx.rem_euclid(columns);
+                ty = ty.rem_euclid(rows);
+            }
+            self.tiles
+                .get(&(u32::try_from(tx).ok()?, u32::try_from(ty).ok()?))
+        };
+        // Resolve the nine possible source tiles once. Each destination row
+        // contains the west word, the complete center row and the east word.
+        let mut input = vec![0; (self.size + 2) * stride];
+        for (dy, first_source_row, first_dest_row, count) in [
+            (-1, self.size - 1, 0, 1),
+            (0, 0, 1, self.size),
+            (1, 0, self.size + 1, 1),
+        ] {
+            let west = neighbor(-1, dy);
+            let center = neighbor(0, dy);
+            let east = neighbor(1, dy);
+            if west.is_none() && center.is_none() && east.is_none() {
+                continue;
+            }
+            for row in 0..count {
+                let at = (first_source_row + row) * words_per_row;
+                let dest = &mut input[(first_dest_row + row) * stride..][..stride];
+                if let Some(tile) = center {
+                    dest[1..1 + words_per_row].copy_from_slice(&tile.words[at..at + words_per_row]);
+                }
+                if let Some(tile) = west {
+                    dest[0] = tile.words[at + words_per_row - 1];
+                }
+                if let Some(tile) = east {
+                    dest[stride - 1] = tile.words[at];
+                }
+            }
+        }
+        input
     }
     fn world_cell(&self, mut x: i64, mut y: i64) -> bool {
         if self.wrap {
@@ -1056,14 +1110,22 @@ impl Engine {
         count
     }
     fn render(&self, x: u32, y: u32, width: u32, height: u32, scale: u32, out: &mut [u64]) {
-        self.render_impl(x, y, width, height, scale, out, None);
+        self.render_impl(
+            x,
+            y,
+            width,
+            (width as u64 * scale as u64, height as u64 * scale as u64),
+            scale,
+            out,
+            None,
+        );
     }
     fn render_impl(
         &self,
         x: u32,
         y: u32,
         width: u32,
-        height: u32,
+        extent: (u64, u64),
         scale: u32,
         out: &mut [u64],
         mut meta: Option<CyclePixels<'_>>,
@@ -1074,8 +1136,8 @@ impl Engine {
             m.logsum.fill(0.0);
             m.maximum.fill(0);
         }
-        let right = (x as u64 + width as u64 * scale as u64).min(self.width as u64);
-        let bottom = (y as u64 + height as u64 * scale as u64).min(self.height as u64);
+        let right = (x as u64 + extent.0).min(self.width as u64);
+        let bottom = (y as u64 + extent.1).min(self.height as u64);
         if x as u64 >= right || y as u64 >= bottom {
             return;
         }
@@ -1715,33 +1777,102 @@ pub unsafe extern "C" fn life_render_cycles(
     out_period_log2_sum: *mut f64,
     out_period_max: *mut u32,
 ) -> u8 {
+    render_region_buffers(
+        ptr,
+        x,
+        y,
+        width,
+        height,
+        scale,
+        (width as u64 * scale as u64, height as u64 * scale as u64),
+        out_counts,
+        Some((out_known_live, out_period_log2_sum, out_period_max)),
+    )
+}
+
+/// Render a rectangle measured in cells, clipping the final row and column of bins.
+#[no_mangle]
+pub unsafe extern "C" fn life_render_region(
+    ptr: *mut Handle,
+    x: u32,
+    y: u32,
+    width: u32,
+    height: u32,
+    scale: u32,
+    counts: *mut u64,
+    known: *mut u64,
+    logs: *mut f64,
+    maximum: *mut u32,
+) -> u8 {
+    let cycles = if known.is_null() && logs.is_null() && maximum.is_null() {
+        None
+    } else {
+        Some((known, logs, maximum))
+    };
+    // render_region_buffers rejects a zero scale before touching any buffers.
+    let divisor = scale.max(1);
+    render_region_buffers(
+        ptr,
+        x,
+        y,
+        width.div_ceil(divisor),
+        height.div_ceil(divisor),
+        scale,
+        (width as u64, height as u64),
+        counts,
+        cycles,
+    )
+}
+
+unsafe fn render_region_buffers(
+    ptr: *mut Handle,
+    x: u32,
+    y: u32,
+    columns: u32,
+    rows: u32,
+    scale: u32,
+    extent: (u64, u64),
+    counts: *mut u64,
+    cycles: Option<(*mut u64, *mut f64, *mut u32)>,
+) -> u8 {
     guard(ptr, 0, |e| {
-        let length = width as u64 * height as u64;
-        if scale == 0
-            || length > 524_288
-            || (length > 0
-                && (out_counts.is_null()
-                    || out_known_live.is_null()
-                    || out_period_log2_sum.is_null()
-                    || out_period_max.is_null()))
-        {
-            return Err("Invalid cycle viewport or output buffers (maximum 524288 pixels)".into());
+        let length = columns as u64 * rows as u64;
+        let limit = if cycles.is_some() {
+            524_288
+        } else {
+            16_777_216
+        };
+        if scale == 0 || length > limit {
+            return Err("Invalid viewport size or scale".into());
         }
-        if length > 0 {
-            e.render_impl(
-                x,
-                y,
-                width,
-                height,
-                scale,
-                std::slice::from_raw_parts_mut(out_counts, length as usize),
-                Some(CyclePixels {
-                    known: std::slice::from_raw_parts_mut(out_known_live, length as usize),
-                    logsum: std::slice::from_raw_parts_mut(out_period_log2_sum, length as usize),
-                    maximum: std::slice::from_raw_parts_mut(out_period_max, length as usize),
-                }),
-            );
+        if length == 0 {
+            return Ok(1);
         }
+        if counts.is_null() {
+            return Err("Missing viewport buffer".into());
+        }
+        let length = length as usize;
+        let meta = if let Some((known, logs, maximum)) = cycles {
+            if known.is_null() || logs.is_null() || maximum.is_null() {
+                return Err("Missing cycle viewport buffer".into());
+            }
+            Some(CyclePixels {
+                known: std::slice::from_raw_parts_mut(known, length),
+                logsum: std::slice::from_raw_parts_mut(logs, length),
+                maximum: std::slice::from_raw_parts_mut(maximum, length),
+            })
+        } else {
+            None
+        };
+        e.render_impl(
+            x,
+            y,
+            columns,
+            extent,
+            scale,
+            std::slice::from_raw_parts_mut(counts, length),
+            meta,
+        );
         Ok(1)
     })
 }
@@ -1995,7 +2126,7 @@ mod tests {
                     x,
                     y,
                     columns,
-                    rows,
+                    (columns as u64 * scale as u64, rows as u64 * scale as u64),
                     scale,
                     &mut counts,
                     Some(CyclePixels {
@@ -2092,6 +2223,60 @@ mod tests {
             }
         }
     }
+    #[test]
+    fn padded_tile_rows_match_world_words_at_partial_and_aligned_seams() {
+        for size in [64u32, 128, 512, 1024] {
+            for (width, height) in [
+                (3 * size, 3 * size),
+                (3 * size + 63, 3 * size + 1),
+                (2 * size + 64, 2 * size),
+                (size, size - 1),
+                (3, 5),
+            ] {
+                let mut e = Engine::new(width, height, size, 1, 0).unwrap();
+                let columns = width.div_ceil(size);
+                let rows = height.div_ceil(size);
+                for ty in 0..rows {
+                    for tx in 0..columns {
+                        if (tx + 2 * ty) % 4 == 1 {
+                            continue; // Missing source tiles must supply zeroes.
+                        }
+                        let x = tx * size;
+                        let y = ty * size;
+                        let w = size.min(width - x);
+                        let h = size.min(height - y);
+                        for dy in [0, h / 2, h.saturating_sub(2), h - 1] {
+                            for dx in [0, 1.min(w - 1), w / 2, w.saturating_sub(2), w - 1] {
+                                e.set(x + dx, y + dy, true).unwrap();
+                            }
+                        }
+                    }
+                }
+                for wrap in [false, true] {
+                    e.wrap = wrap;
+                    for ty in 0..rows {
+                        for tx in 0..columns {
+                            let x = i64::from(tx * size);
+                            let y = i64::from(ty * size);
+                            let input = e.input((tx, ty));
+                            let mut words = input.into_iter();
+                            for row in -1..=i64::from(size) {
+                                for column in -1..=i64::from(size / 64) {
+                                    assert_eq!(
+                                        words.next(),
+                                        Some(e.world_word(x + 64 * column, y + row)),
+                                        "world {width}x{height}, tile {size} ({tx},{ty}), wrap {wrap}, word ({column},{row})"
+                                    );
+                                }
+                            }
+                            assert_eq!(words.next(), None);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     #[test]
     fn random_fields_partial_tiles_and_threads() {
         for (w, h) in [

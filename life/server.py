@@ -16,7 +16,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.background import BackgroundTask
 
 from .config import load_config, public_config
-from .formats import MAX_IMPORT_CELLS, MAX_TEXT_BYTES, json_chunks, parse_state, rle_text
+from .formats import MAX_IMPORT_CELLS, MAX_TEXT_BYTES, json_chunks, parse_state, rle_chunks
 from .native import ROOT
 from .runtime import Simulation, StaleGeneration
 
@@ -115,7 +115,8 @@ def create_app(config: dict | None = None, simulation=None) -> FastAPI:
 
     @app.post("/api/control")
     def control(request: Request, data: dict = Body(...)):
-        return sim(request).control(data.get("action"), data.get("steps", 1), data.get("generations_per_second", 0))
+        return sim(request).control(data.get("action"), data.get("steps", 1), data.get("generations_per_second", 0),
+                                    run_id=data.get("run_id"), generation=data.get("generation"))
 
     @app.post("/api/new")
     def new(request: Request, data: dict = Body(...)):
@@ -141,7 +142,7 @@ def create_app(config: dict | None = None, simulation=None) -> FastAPI:
         if format not in ("json", "rle"):
             raise ValueError("format must be json or rle")
         simulation = sim(request)
-        with export_gate, simulation.lock:
+        with export_gate, simulation.access():
             engine = simulation.engine
             if engine.population > MAX_IMPORT_CELLS:
                 raise ValueError("Text export is limited to 2,000,000 live cells; use a segmented checkpoint for larger states")
@@ -152,7 +153,7 @@ def create_app(config: dict | None = None, simulation=None) -> FastAPI:
                     if format == "json":
                         stream.writelines(json_chunks(engine.width, engine.height, engine.wrap, engine.generation, engine.cells()))
                     else:
-                        stream.write(rle_text(engine.width, engine.height, engine.wrap, engine.generation, engine.cells()))
+                        stream.writelines(rle_chunks(engine.width, engine.height, engine.wrap, engine.generation, engine.iter_packed()))
                 generation = engine.generation
             except BaseException:
                 path.unlink(missing_ok=True)
@@ -162,7 +163,9 @@ def create_app(config: dict | None = None, simulation=None) -> FastAPI:
 
     @app.get("/api/config")
     def get_config(request: Request):
-        return public_config(sim(request).config)
+        simulation = sim(request)
+        with simulation.access():
+            return public_config(simulation.config)
 
     @app.put("/api/config")
     def put_config(request: Request, data: dict = Body(...)):

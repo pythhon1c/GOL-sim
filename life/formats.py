@@ -27,11 +27,15 @@ def check_rule(rule: str) -> None:
 
 
 def parse_json(text: str, max_cells: int = MAX_IMPORT_CELLS) -> State:
-    data = json.loads(text)
+    return parse_json_data(json.loads(text), max_cells)
+
+
+def parse_json_data(data: object, max_cells: int = MAX_IMPORT_CELLS) -> State:
     if not isinstance(data, dict):
         raise ValueError("State must be a JSON object")
     check_rule(data.get("rule", "B3/S23"))
-    if data.get("version", 1) != 1:
+    version = data.get("version", 1)
+    if isinstance(version, bool) or version != 1:
         raise ValueError("Unsupported state version")
     base = data.get("coordinate_base", 0)
     if type(base) is not int or base not in (0, 1):
@@ -151,35 +155,39 @@ def json_chunks(width: int, height: int, wrap: bool, generation: int, cells: Ite
     yield "".join(buffer) + "]}\n"
 
 
-def rle_text(width: int, height: int, wrap: bool, generation: int, cells: Iterable[tuple[int, int]]) -> str:
-    ordered = sorted(cells, key=lambda cell: (cell[1], cell[0]))
-    prefix = f"#C LIFE width={width} height={height} origin_x=0 origin_y=0 wrap={int(wrap)} generation={generation}\n"
-    prefix += f"x = {width}, y = {height}, rule = B3/S23\n"
-    tokens = []
-    x = y = 0
-    def run(n, token):
-        if n:
-            tokens.append((str(n) if n > 1 else "") + token)
-    index = 0
+def _rle_tokens(packed: Iterable[int]):
+    # Sorting the native y32:x32 integers directly gives row-major order.
+    ordered = sorted(packed)
+    index = x = y = 0
     while index < len(ordered):
-        xx, yy = ordered[index]
+        cell = ordered[index]
+        xx, yy = cell & 0xFFFFFFFF, cell >> 32
         if yy != y:
-            run(yy - y, "$")
+            yield (str(yy - y) if yy - y > 1 else "") + "$"
             x, y = 0, yy
-        run(xx - x, "b")
+        if xx > x:
+            yield (str(xx - x) if xx - x > 1 else "") + "b"
         end = index + 1
-        while end < len(ordered) and ordered[end] == (ordered[end - 1][0] + 1, yy):
+        while end < len(ordered) and ordered[end] == ordered[end - 1] + 1:
             end += 1
-        run(end - index, "o")
-        x = ordered[end - 1][0] + 1
+        count = end - index
+        yield (str(count) if count > 1 else "") + "o"
+        x = xx + count
         index = end
-    tokens.append("!")
-    # Wrap only between tokens: a numeric run length is never split.
-    lines, line = [], ""
-    for token in tokens:
+    yield "!"
+
+
+def rle_chunks(width: int, height: int, wrap: bool, generation: int, packed: Iterable[int]):
+    yield f"#C LIFE width={width} height={height} origin_x=0 origin_y=0 wrap={int(wrap)} generation={generation}\n"
+    yield f"x = {width}, y = {height}, rule = B3/S23\n"
+    line = ""
+    for token in _rle_tokens(packed):
         if len(line) + len(token) > 70:
-            lines.append(line)
+            yield line + "\n"
             line = ""
         line += token
-    lines.append(line)
-    return prefix + "\n".join(lines) + "\n"
+    yield line + "\n"
+
+
+def rle_text(width: int, height: int, wrap: bool, generation: int, cells: Iterable[tuple[int, int]]) -> str:
+    return "".join(rle_chunks(width, height, wrap, generation, ((y << 32) | x for x, y in cells)))
